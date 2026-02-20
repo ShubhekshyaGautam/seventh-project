@@ -4,17 +4,31 @@ const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(0);
 
   const faqs = [
-    {
-      q: "What is TimeMap?",
-      a: "TimeMap is a student time management system that helps users plan, track, and analyze how they spend their time to improve productivity."
-    },
-    { q: "Is TimeMap free to use?", a: "" },
-    { q: "How does time tracking work?", a: "" },
-    { q: "Can I view my productivity reports?", a: "" },
-    { q: "Does TimeMap use machine learning?", a: "" },
-    { q: "Is my data safe?", a: "" }
-  ];
-
+  {
+    q: "What is TimeMap?",
+    a: "TimeMap is a student time management system that helps users plan, track, and analyze how they spend their time to improve productivity."
+  },
+  {
+    q: "Is TimeMap free to use?",
+    a: "Yes, TimeMap offers a free version with essential features for students to manage and track their daily activities efficiently."
+  },
+  {
+    q: "How does time tracking work?",
+    a: "Users can log their daily tasks and study hours. TimeMap records the data and provides insights into how time is distributed across activities."
+  },
+  {
+    q: "Can I view my productivity reports?",
+    a: "Yes, TimeMap generates visual productivity reports to help users understand their performance and improve time management habits."
+  },
+  {
+    q: "Does TimeMap use machine learning?",
+    a: "Yes, TimeMap uses basic machine learning techniques to analyze patterns and suggest improvements for better productivity."
+  },
+  {
+    q: "Is my data safe?",
+    a: "Yes, user data is securely stored and protected using modern security practices to ensure privacy and safety."
+  }
+];
   return (
     <>
       <section className="faq-section">
