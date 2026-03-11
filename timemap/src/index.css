@@ -1,0 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "DM Sans", sans-serif;
+}
+
+body {
+  background: #ffffff;
+  color: #111;
+}
+
+section {
+  padding: 80px 120px;
+}
+
+button {
+  background: #C28730;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+h1, h2 {
+  font-weight: 700;
+}
