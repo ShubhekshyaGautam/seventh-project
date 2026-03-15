@@ -1,7 +1,11 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Import the navigation hook
 import backgroundImage from '../assets/img/bg.png'; 
 import logo from '../assets/img/logo.png'; 
 
 export default function HeroSection() {
+  const navigate = useNavigate(); // Initialize navigation
+
   return (
     <section
       style={{
@@ -14,22 +18,22 @@ export default function HeroSection() {
         fontFamily: "'Inter', sans-serif",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center", // Keeps the TimeMap text centered vertically
+        justifyContent: "center", 
         alignItems: "center",
         overflow: "hidden"
       }}
     >
-
+      {/* 1. THE DARK OVERLAY */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.55)", // This creates that aesthetic dark look
+          backgroundColor: "rgba(0, 0, 0, 0.55)", 
           zIndex: 1,
         }}
       />
 
-      {/* 2. THE OVERLAY NAVBAR: Sits on top of the image */}
+      {/* 2. THE OVERLAY NAVBAR */}
       <nav
         style={{
           position: "absolute",
@@ -45,40 +49,43 @@ export default function HeroSection() {
         }}
       >
         {/* Logo Space (Left) */}
-<div style={{ width: "40px", height: "40px", display: "flex", alignItems: "center" }}>
-  <img 
-    src={logo} 
-    alt="TimeMap Logo" 
-    style={{ 
-      width: "100%", 
-      height: "auto", 
-      display: "block" 
-    }} 
-  />
-</div>
+        <div style={{ width: "40px", height: "40px", display: "flex", alignItems: "center" }}>
+          <img 
+            src={logo} 
+            alt="TimeMap Logo" 
+            style={{ 
+              width: "100%", 
+              height: "auto", 
+              display: "block" 
+            }} 
+          />
+        </div>
 
         {/* Right Side Items */}
         <div style={{ display: "flex", gap: "35px", alignItems: "center" }}>
           <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>About Us</a>
           <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>Contact</a>
           
-          {/* Login Button with Icon Space */}
-          <button style={{
-            backgroundColor: "white",
-            color: "black",
-            border: "none",
-            padding: "9px 20px",
-            borderRadius: "996px",
-            fontWeight: "600",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            cursor: "pointer"
-          }}>
-             Login
+          {/* Login Button - Navigation Added Here */}
+          <button 
+            onClick={() => navigate('/login')}
+            style={{
+              backgroundColor: "white",
+              color: "black",
+              border: "none",
+              padding: "9px 20px",
+              borderRadius: "996px",
+              fontWeight: "600",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              cursor: "pointer"
+            }}
+          >
+            Login
           </button>
 
-          {/* The Hamburger/Menu Icon on the far right */}
+          {/* The Hamburger/Menu Icon */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px", cursor: "pointer" }}>
             <div style={{ width: "20px", height: "2px", backgroundColor: "white" }}></div>
             <div style={{ width: "20px", height: "2px", backgroundColor: "white" }}></div>
@@ -118,7 +125,9 @@ export default function HeroSection() {
           Where there is planning, there is progress.
         </p>
 
+        {/* Get Started Button - Navigation Added Here (takes to signup) */}
         <button
+          onClick={() => navigate('/signup')}
           style={{
             backgroundColor: "white",
             color: "black",
@@ -133,8 +142,6 @@ export default function HeroSection() {
           Manage your time
         </button>
       </div>
-
-      
     </section>
   );
 }
