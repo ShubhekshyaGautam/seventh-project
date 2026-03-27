@@ -1,9 +1,14 @@
 import { CalendarCheck, Clock, BarChart3 } from "lucide-react";
-
+import { motion } from "framer-motion";
+import { fadeIn, fadeLeft, staggerContainer } from "./Animation";
 export default function Features() {
   return (
-    <section style={styles.section}>
-      <div style={styles.container}>
+    <motion.section
+    variants={staggerContainer}
+    initial="hidden"
+    whileInView="show"
+    viewport={{ once: true, amount: 0.4  }} style={styles.section}>
+      <motion.div variants={fadeIn} style={styles.container}>
         <h2 style={styles.heading}>
           Why Use TimeMap for Better Time Management?
         </h2>
@@ -13,7 +18,7 @@ export default function Features() {
           insights designed for students.
         </p>
 
-        <div style={styles.grid}>
+        <motion.div  variants={fadeIn} style={styles.grid}>
           <Card
             color="#FFF7AF"
             title="Smart Scheduling"
@@ -34,9 +39,9 @@ export default function Features() {
             text="Get data-driven recommendations to improve productivity and manage time more effectively."
             icon={<BarChart3 size={20} color="#C28730" />}
           />
-        </div>
-      </div>
-    </section>
+        </motion.div>
+      </motion.div>
+    </motion.section>
   );
 }
 

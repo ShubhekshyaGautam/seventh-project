@@ -1,10 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Import the navigation hook
+import { useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/img/bg.png'; 
 import logo from '../assets/img/logo.png'; 
+import { motion } from "framer-motion";
+import { fadeIn, fadeLeft, staggerContainer } from "./Animation";
 
 export default function HeroSection() {
-  const navigate = useNavigate(); // Initialize navigation
+  const navigate = useNavigate();
 
   return (
     <section
@@ -44,48 +46,19 @@ export default function HeroSection() {
           justifyContent: "space-between",
           alignItems: "center",
           padding: "30px 60px", 
-          zIndex: 10, 
+          zIndex: 10,
           backgroundColor: "transparent", 
         }}
       >
-        {/* Logo Space (Left) */}
         <div style={{ width: "40px", height: "40px", display: "flex", alignItems: "center" }}>
-          <img 
-            src={logo} 
-            alt="TimeMap Logo" 
-            style={{ 
-              width: "100%", 
-              height: "auto", 
-              display: "block" 
-            }} 
-          />
+          <img src={logo} alt="TimeMap Logo" style={{ width: "100%" }} />
         </div>
 
-        {/* Right Side Items */}
         <div style={{ display: "flex", gap: "35px", alignItems: "center" }}>
-          <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>About Us</a>
-          <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>Contact</a>
+         <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>About Us</a> <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>Contact</a>
           
-          {/* Login Button - Navigation Added Here */}
-          <button 
-            onClick={() => navigate('/login')}
-            style={{
-              backgroundColor: "white",
-              color: "black",
-              border: "none",
-              padding: "9px 20px",
-              borderRadius: "996px",
-              fontWeight: "600",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              cursor: "pointer"
-            }}
-          >
-            Login
-          </button>
+         <button onClick={() => navigate('/login')} style={{ backgroundColor: "white", color: "black", border: "none", padding: "9px 20px", borderRadius: "996px", fontWeight: "600", display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} > Login </button>
 
-          {/* The Hamburger/Menu Icon */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px", cursor: "pointer" }}>
             <div style={{ width: "20px", height: "2px", backgroundColor: "white" }}></div>
             <div style={{ width: "20px", height: "2px", backgroundColor: "white" }}></div>
@@ -94,7 +67,11 @@ export default function HeroSection() {
       </nav>
 
       {/* 3. CENTER CONTENT */}
-      <div
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
         style={{
           marginTop: "100px",
           position: "relative",
@@ -103,7 +80,8 @@ export default function HeroSection() {
           color: "white",
         }}
       >
-        <h1
+        {/* ✅ FadeIn text */}
+        <motion.h1 variants={fadeIn}
           style={{
             fontSize: "clamp(60px, 10vw, 100px)", 
             fontWeight: "900",
@@ -113,9 +91,10 @@ export default function HeroSection() {
           }}
         >
           TimeMap
-        </h1>
+        </motion.h1>
 
-        <p
+        <motion.p
+          variants={fadeIn}
           style={{
             fontSize: "22px",
             fontWeight: "500",
@@ -123,10 +102,10 @@ export default function HeroSection() {
           }}
         >
           Where there is planning, there is progress.
-        </p>
+        </motion.p>
 
-        {/* Get Started Button - Navigation Added Here (takes to signup) */}
-        <button
+        <motion.button
+          variants={fadeIn}
           onClick={() => navigate('/signup')}
           style={{
             backgroundColor: "white",
@@ -140,8 +119,8 @@ export default function HeroSection() {
           }}
         >
           Manage your time
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </section>
   );
 }

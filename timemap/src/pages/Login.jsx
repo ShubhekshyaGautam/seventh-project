@@ -154,15 +154,15 @@ const Login = () => {
         font-weight:500;
       }
 
-      .hero-btn{
-        margin-top:25px;
-        padding:12px 28px;
-        border:none;
-        border-radius:30px;
-        background:white;
-        font-weight:700;
-        cursor:pointer;
-      }
+ .hero-btn{
+  margin-top:25px;
+  padding:12px 28px;
+  border:none;
+  border-radius:30px;
+  background:white;
+  font-weight:700;
+  cursor:pointer;
+  color:black;   
 
       /* RESPONSIVE */
 
