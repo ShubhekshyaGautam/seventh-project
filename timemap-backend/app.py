@@ -21,25 +21,40 @@ def home():
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
+
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email exists'}), 400
-    
+
     user = User(
         username=data['username'],
         email=data['email'],
         password_hash=generate_password_hash(data['password'])
     )
+
     db.session.add(user)
     db.session.commit()
+
     return jsonify({'message': 'User created', 'user_id': user.id}), 201
 
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
+    print("=== LOGIN ATTEMPT ===")
+    print("Email received:", data['email'])
+    print("Password received:", data['password'])
+    
     user = User.query.filter_by(email=data['email']).first()
+    print("User found:", user)
+    
+    if user:
+        print("Stored hash:", user.password_hash)
+        check = check_password_hash(user.password_hash, data['password'])
+        print("Password match:", check)
+    
     if user and check_password_hash(user.password_hash, data['password']):
         return jsonify({'user_id': user.id, 'username': user.username}), 200
     return jsonify({'error': 'Invalid credentials'}), 401
+
 
 @app.route('/api/tasks', methods=['POST'])
 def create_task():

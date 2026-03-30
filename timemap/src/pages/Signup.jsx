@@ -2,20 +2,46 @@ import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import bgImage from "../assets/img/bg.png";
+import { registerUser } from "../api/api";
 
 const Signup = () => {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
+    email: "",  
     phone: "",
     password: "",
   });
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!form.name || !form.email || !form.phone || !form.password) {
+    setError("All fields are required!");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  const result = await registerUser(form);
+
+  setLoading(false);
+
+  if (result.success) {
+    alert("Registration successful! Please login.");
+    navigate("/login");
+  } else {
+    setError(result.error);
+  }
+};
 
   return (
     <>
@@ -245,7 +271,7 @@ display:none;
             <h2 className="title">Welcome to TimeMap</h2>
             <p className="subtitle">Create your TimeMap account</p>
 
-            <form className="form">
+            <form className="form" onSubmit={handleSubmit}>
 
               <input
                 className="input"
@@ -254,6 +280,13 @@ display:none;
                 onChange={handleChange}
               />
 
+              <input 
+                 className="input"
+                 name="email"
+                 placeholder="Email *"
+                 onChange={handleChange}
+                 />
+              
               <input
                 className="input"
                 name="phone"
@@ -286,8 +319,9 @@ display:none;
                 as well as our
                 <span className="gold"> Privacy Policy</span>.
               </p>
+              {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
 
-              <button className="main-btn">
+              <button type="submit" className="main-btn">
                 Create account
               </button>
 

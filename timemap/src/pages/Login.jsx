@@ -1,3 +1,4 @@
+import { loginUser } from "../api/api";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
@@ -7,10 +8,32 @@ const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ emailPhone: "", password: "" });
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  if (!form.emailPhone || !form.password) {
+    setError("All fields are required!");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  const result = await loginUser(form);
+
+  setLoading(false);
+
+  if (result.success) {
+    alert("Login successful!");
+    navigate("/"); // redirect to landing
+  } else {
+    setError(result.error);
+  }
+};
   return (
     <>
       <style>{`
@@ -191,12 +214,12 @@ const Login = () => {
             <h2 className="title">Welcome to TimeMap</h2>
             <p className="subtitle">Login to your account</p>
 
-            <form className="form">
+            <form className="form" onSubmit={handleSubmit}>
 
               <input
                 className="input"
                 name="emailPhone"
-                placeholder="Email/Phone *"
+                placeholder="Email *"
                 onChange={handleChange}
               />
 
@@ -220,8 +243,8 @@ const Login = () => {
               </div>
 
               <p className="forgot">Forgot password?</p>
-
-              <button className="main-btn">
+              {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
+              <button type="submit" className="main-btn">
                 Log in
               </button>
 
