@@ -39,21 +39,17 @@ def register():
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
-    print("=== LOGIN ATTEMPT ===")
-    print("Email received:", data['email'])
-    print("Password received:", data['password'])
-    
+
     user = User.query.filter_by(email=data['email']).first()
-    print("User found:", user)
-    
-    if user:
-        print("Stored hash:", user.password_hash)
-        check = check_password_hash(user.password_hash, data['password'])
-        print("Password match:", check)
-    
-    if user and check_password_hash(user.password_hash, data['password']):
-        return jsonify({'user_id': user.id, 'username': user.username}), 200
-    return jsonify({'error': 'Invalid credentials'}), 401
+
+    # FIX: check user exists first before calling check_password_hash
+    if not user:
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+    if not check_password_hash(user.password_hash, data['password']):
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+    return jsonify({'user_id': user.id, 'username': user.username}), 200
 
 
 @app.route('/api/tasks', methods=['POST'])
