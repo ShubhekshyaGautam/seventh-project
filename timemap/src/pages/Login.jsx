@@ -28,8 +28,16 @@ const handleSubmit = async (e) => {
   setLoading(false);
 
   if (result.success) {
-    alert("Login successful!");
-    navigate("/"); // redirect to landing
+    // ✅ store user (if backend sends it)
+    if (result.user) {
+      localStorage.setItem("user", JSON.stringify(result.user));
+    }
+
+    // ❌ removed alert
+    // alert("Login successful!");
+
+    // ✅ redirect to dashboard
+    navigate("/dashboard");
   } else {
     setError(result.error);
   }
@@ -186,7 +194,7 @@ const handleSubmit = async (e) => {
   font-weight:700;
   cursor:pointer;
   color:black;   
-
+      }
       /* RESPONSIVE */
 
       @media(max-width:900px){
