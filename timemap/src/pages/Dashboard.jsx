@@ -29,13 +29,22 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
-      const d = await r.json();
-      setTasks(d.tasks || []);
-    } catch(e) { console.error(e); }
-  };
+ const fetchTasks = async () => {
+  if (!userId) return;
+  try {
+    const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
+    if (!r.ok) {
+      console.error('Failed to fetch tasks');
+      return;
+    }
+    const d = await r.json();
+    console.log('Tasks received:', d);  // Debug log
+    setTasks(d.tasks || []);
+  } catch(e) { 
+    console.error('Error fetching tasks:', e); 
+    setTasks([]);  // Set empty array on error
+  }
+};
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -511,7 +520,7 @@ export default function Dashboard() {
         <main className="d-main">
           <div className="d-topbar">
             <div>
-              <h1 className="d-welcome">{greeting}, <em>{username}</em> 👋</h1>
+              <h1 className="d-welcome">{greeting}, <em>{username}</em> :) </h1>
               <p className="d-date-str">
                 {today.toLocaleDateString("en-US",{ weekday:"long", year:"numeric", month:"long", day:"numeric" })}
               </p>

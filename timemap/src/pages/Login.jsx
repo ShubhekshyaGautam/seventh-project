@@ -26,17 +26,10 @@ const handleSubmit = async (e) => {
   const result = await loginUser(form);
 
   setLoading(false);
-
+console.log("Login result:", result);
   if (result.success) {
-    // ✅ store user (if backend sends it)
-    if (result.user) {
-      localStorage.setItem("user", JSON.stringify(result.user));
-    }
-
-    // ❌ removed alert
-    // alert("Login successful!");
-
-    // ✅ redirect to dashboard
+    localStorage.setItem("user_id", result.data.user_id);
+localStorage.setItem("username", result.data.username);
     navigate("/dashboard");
   } else {
     setError(result.error);
