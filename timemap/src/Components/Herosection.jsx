@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import backgroundImage from '../assets/img/bg.png'; 
-import logo from '../assets/img/logo.png'; 
+import backgroundImage from '../assets/img/bg.png';
 import { motion } from "framer-motion";
 import { fadeIn, fadeLeft, staggerContainer } from "./Animation";
 
@@ -20,7 +19,7 @@ export default function HeroSection() {
         fontFamily: "'Inter', sans-serif",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center", 
+        justifyContent: "center",
         alignItems: "center",
         overflow: "hidden"
       }}
@@ -30,41 +29,13 @@ export default function HeroSection() {
         style={{
           position: "absolute",
           inset: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.55)", 
+          backgroundColor: "rgba(0, 0, 0, 0.55)",
           zIndex: 1,
         }}
       />
 
       {/* 2. THE OVERLAY NAVBAR */}
-      <nav
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "30px 60px", 
-          zIndex: 10,
-          backgroundColor: "transparent", 
-        }}
-      >
-        <div style={{ width: "40px", height: "40px", display: "flex", alignItems: "center" }}>
-          <img src={logo} alt="TimeMap Logo" style={{ width: "100%" }} />
-        </div>
 
-        <div style={{ display: "flex", gap: "35px", alignItems: "center" }}>
-         <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>About Us</a> <a href="#" style={{ color: "white", textDecoration: "none", fontWeight: "500", fontSize: "15px" }}>Contact</a>
-          
-         <button onClick={() => navigate('/login')} style={{ backgroundColor: "white", color: "black", border: "none", padding: "9px 20px", borderRadius: "996px", fontWeight: "600", display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} > Login </button>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px", cursor: "pointer" }}>
-            <div style={{ width: "20px", height: "2px", backgroundColor: "white" }}></div>
-            <div style={{ width: "20px", height: "2px", backgroundColor: "white" }}></div>
-          </div>
-        </div>
-      </nav>
 
       {/* 3. CENTER CONTENT */}
       <motion.div
@@ -83,7 +54,7 @@ export default function HeroSection() {
         {/* ✅ FadeIn text */}
         <motion.h1 variants={fadeIn}
           style={{
-            fontSize: "clamp(60px, 10vw, 100px)", 
+            fontSize: "clamp(60px, 10vw, 100px)",
             fontWeight: "900",
             margin: "0 0 10px 0",
             letterSpacing: "-4px",
