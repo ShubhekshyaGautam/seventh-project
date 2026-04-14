@@ -28,15 +28,12 @@ const handleSubmit = async (e) => {
   setLoading(false);
 
   if (result.success) {
-    // ✅ store user (if backend sends it)
+    
     if (result.user) {
       localStorage.setItem("user", JSON.stringify(result.user));
     }
 
-    // ❌ removed alert
-    // alert("Login successful!");
-
-    // ✅ redirect to dashboard
+   
     navigate("/dashboard");
   } else {
     setError(result.error);
