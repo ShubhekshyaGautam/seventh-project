@@ -490,11 +490,11 @@ export default function Dashboard() {
           <p className="d-tagline">Your study companion</p>
           <nav className="d-nav">
             {[
-              { id:"dashboard", icon:"🏠", label:"Dashboard" },
-              { id:"tasks",     icon:"📚", label:"My Tasks" },
-              { id:"calendar",  icon:"📅", label:"Calendar" },
-              { id:"analytics", icon:"📊", label:"Analytics" },
-              { id:"timer",     icon:"⏱️", label:"Focus Timer" },
+              { id:"dashboard", icon:"", label:"Dashboard" },
+              { id:"tasks",     icon:"", label:"My Tasks" },
+              { id:"calendar",  icon:"", label:"Calendar" },
+              { id:"analytics", icon:"", label:"Analytics" },
+              { id:"timer",     icon:"", label:"Focus Timer" },
             ].map(n => (
               <button
                 key={n.id}
@@ -534,8 +534,8 @@ export default function Dashboard() {
             {[
               { label:"Total Tasks",  val:total,     sub:"All subjects",    color:"#c48b32", pct:100 },
               { label:"Pending",      val:pending,   sub:"To study",        color:"#f59e0b", pct: total?(pending/total)*100:0 },
-              { label:"Completed",    val:completed, sub:"Well done!",      color:"#22c55e", pct: total?(completed/total)*100:0 },
-              { label:"Overdue",      val:overdue,   sub:"Needs attention", color:"#ef4444", pct: total?(overdue/total)*100:0 },
+              { label:"Completed",    val:completed, sub:"Well done!",      color:"#ca9231", pct: total?(completed/total)*100:0 },
+              { label:"Overdue",      val:overdue,   sub:"Needs attention", color:"#e5b71f", pct: total?(overdue/total)*100:0 },
             ].map(s => (
               <div className="d-stat" key={s.label}>
                 <div className="d-stat-label">{s.label}</div>
@@ -556,7 +556,7 @@ export default function Dashboard() {
               </div>
               {tasks.length === 0 ? (
                 <div className="d-empty">
-                  <div className="d-empty-icon">📖</div>
+                  <div className="d-empty-icon"></div>
                   <div className="d-empty-text">No tasks yet</div>
                   <div className="d-empty-sub">Add your first study task to get started</div>
                 </div>
