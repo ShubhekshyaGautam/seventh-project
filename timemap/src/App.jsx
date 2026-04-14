@@ -6,8 +6,6 @@ import Signup from "./pages/Signup.jsx";
 import Dashboard from "./pages/Dashboard";
 
 
-
-
 export default function App() {
   return (
     <BrowserRouter>

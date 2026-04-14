@@ -29,13 +29,22 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
-      const d = await r.json();
-      setTasks(d.tasks || []);
-    } catch(e) { console.error(e); }
-  };
+ const fetchTasks = async () => {
+  if (!userId) return;
+  try {
+    const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
+    if (!r.ok) {
+      console.error('Failed to fetch tasks');
+      return;
+    }
+    const d = await r.json();
+    console.log('Tasks received:', d);  // Debug log
+    setTasks(d.tasks || []);
+  } catch(e) { 
+    console.error('Error fetching tasks:', e); 
+    setTasks([]);  // Set empty array on error
+  }
+};
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -481,11 +490,11 @@ export default function Dashboard() {
           <p className="d-tagline">Your study companion</p>
           <nav className="d-nav">
             {[
-              { id:"dashboard", icon:"🏠", label:"Dashboard" },
-              { id:"tasks",     icon:"📚", label:"My Tasks" },
-              { id:"calendar",  icon:"📅", label:"Calendar" },
-              { id:"analytics", icon:"📊", label:"Analytics" },
-              { id:"timer",     icon:"⏱️", label:"Focus Timer" },
+              { id:"dashboard", icon:"", label:"Dashboard" },
+              { id:"tasks",     icon:"", label:"My Tasks" },
+              { id:"calendar",  icon:"", label:"Calendar" },
+              { id:"analytics", icon:"", label:"Analytics" },
+              { id:"timer",     icon:"", label:"Focus Timer" },
             ].map(n => (
               <button
                 key={n.id}
@@ -511,7 +520,7 @@ export default function Dashboard() {
         <main className="d-main">
           <div className="d-topbar">
             <div>
-              <h1 className="d-welcome">{greeting}, <em>{username}</em> 👋</h1>
+              <h1 className="d-welcome">{greeting}, <em>{username}</em> :) </h1>
               <p className="d-date-str">
                 {today.toLocaleDateString("en-US",{ weekday:"long", year:"numeric", month:"long", day:"numeric" })}
               </p>
@@ -525,8 +534,8 @@ export default function Dashboard() {
             {[
               { label:"Total Tasks",  val:total,     sub:"All subjects",    color:"#c48b32", pct:100 },
               { label:"Pending",      val:pending,   sub:"To study",        color:"#f59e0b", pct: total?(pending/total)*100:0 },
-              { label:"Completed",    val:completed, sub:"Well done!",      color:"#22c55e", pct: total?(completed/total)*100:0 },
-              { label:"Overdue",      val:overdue,   sub:"Needs attention", color:"#ef4444", pct: total?(overdue/total)*100:0 },
+              { label:"Completed",    val:completed, sub:"Well done!",      color:"#ca9231", pct: total?(completed/total)*100:0 },
+              { label:"Overdue",      val:overdue,   sub:"Needs attention", color:"#e5b71f", pct: total?(overdue/total)*100:0 },
             ].map(s => (
               <div className="d-stat" key={s.label}>
                 <div className="d-stat-label">{s.label}</div>
@@ -547,7 +556,7 @@ export default function Dashboard() {
               </div>
               {tasks.length === 0 ? (
                 <div className="d-empty">
-                  <div className="d-empty-icon">📖</div>
+                  <div className="d-empty-icon"></div>
                   <div className="d-empty-text">No tasks yet</div>
                   <div className="d-empty-sub">Add your first study task to get started</div>
                 </div>
