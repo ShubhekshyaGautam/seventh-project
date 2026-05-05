@@ -618,18 +618,20 @@ export default function Dashboard() {
                           }}>
                             {t.status}
                           </span>
-
                           <button
-                            onClick={() => updateStatus(t.id, "Completed")}
+                          onClick={() => updateStatus(t.id, t.status === "Completed" ? "Pending" : "Completed")}
                             style={{
-                              padding: "4px 6px", fontSize: "11px",
-                              background: "#22c55e", color: "white",
-                              border: "none", borderRadius: "6px", cursor: "pointer"
+                            padding: "4px 6px", fontSize: "11px",
+                            background: t.status === "Completed" ? "#22c55e" :  "#f59e0b",
+                           color: "white",
+                           border: "none", borderRadius: "6px", cursor: "pointer"
                             }}
-                          >
-                            ✓
-                          </button>
+                           title={t.status === "Completed" ? "Mark as Pending" : "Mark as Completed"}
+                             >
+                            {t.status === "Completed" ? "✓" : "↩"}
+                            </button>
 
+              
                           <button
                             onClick={() => deleteTask(t.id)}
                             style={{
