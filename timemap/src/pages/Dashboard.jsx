@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import logo1 from "../assets/img/logo1.png";
+
+// ── Lucide icons (replaces missing LogOut + nav icons) ──
+import {
+  LogOut,
+  LayoutDashboard,
+  CheckSquare,
+  Calendar,
+  BarChart2,
+  Timer,
+} from "lucide-react";
 
 const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 const getFirstDay   = (year, month) => new Date(year, month, 1).getDay();
@@ -29,7 +40,6 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
-  // ✅ FETCH TASKS
   const fetchTasks = async () => {
     if (!userId) return;
     try {
@@ -43,19 +53,13 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ DELETE TASK — now at component scope, accessible in JSX
   const deleteTask = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`http://localhost:5000/api/tasks/${id}`, { method: "DELETE" });
       if (res.ok) fetchTasks();
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
+    } catch (err) { console.error("Delete error:", err); }
   };
 
-  // ✅ UPDATE STATUS — now at component scope, accessible in JSX
   const updateStatus = async (id, newStatus) => {
     try {
       const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
@@ -64,26 +68,20 @@ export default function Dashboard() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) fetchTasks();
-    } catch (err) {
-      console.error("Update error:", err);
-    }
+    } catch (err) { console.error("Update error:", err); }
   };
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleAddTask = async e => {
-    e.preventDefault();
+  // ── FIX: removed <form> onSubmit; now using onClick on the button ──
+  const handleAddTask = async () => {
     if (!form.task_name || !form.deadline) return;
     setSaving(true);
     try {
       const r = await fetch("http://localhost:5000/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          user_id: parseInt(userId),
-          status: "Pending"
-        }),
+        body: JSON.stringify({ ...form, user_id: parseInt(userId), status: "Pending" }),
       });
       if (r.ok) {
         setForm({ task_name:"", subject_category:"", difficulty_level:"Medium", estimated_hours:"", deadline:"" });
@@ -114,7 +112,6 @@ export default function Dashboard() {
     return        { label: `${d}d left`,       cls: "ok"    };
   };
 
-  // ✅ RISK LOGIC
   const calculateRisk = (task) => {
     const days = (new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24);
     if (days <= 1) return "High";
@@ -142,14 +139,24 @@ export default function Dashboard() {
   const hour = today.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
+  // ── FIX: using lucide-react icons instead of image imports ──
+  const navItems = [
+    { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
+    { id: "tasks",     Icon: CheckSquare,     label: "My Task"   },
+    { id: "calendar",  Icon: Calendar,        label: "Calendar"  },
+    { id: "analytics", Icon: BarChart2,       label: "Analytics" },
+    { id: "timer",     Icon: Timer,           label: "Focus Timer"},
+  ];
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
         :root {
           --gold:   #c48b32;
           --gold2:  #e8a93e;
+          --gold-bg: #fdf3e3;
           --ink:    #18181b;
           --ink2:   #52525b;
           --ink3:   #a1a1aa;
@@ -164,64 +171,102 @@ export default function Dashboard() {
         body { background: var(--bg); }
 
         .d-root {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Inter', sans-serif;
           display: flex;
           min-height: 100vh;
           background: var(--bg);
           color: var(--ink);
         }
 
+        /* ── SIDEBAR ── */
         .d-sidebar {
-          width: 220px;
+          width: 240px;
           min-height: 100vh;
           background: var(--card);
           border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
-          padding: 28px 16px;
+          padding: 24px 16px 20px;
           position: fixed;
           top: 0; left: 0; bottom: 0;
         }
-        .d-logo {
+
+        .d-logo-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 0 4px;
+          margin-bottom: 36px;
+        }
+       .d-logo-icon {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+        .d-logo-text {
           font-family: 'Lora', serif;
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 600;
           color: var(--gold);
-          padding: 0 8px;
-          margin-bottom: 4px;
         }
-        .d-tagline {
-          font-size: 10.5px;
-          color: var(--ink3);
-          padding: 0 8px;
-          margin-bottom: 32px;
-        }
-        .d-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+
+        /* Nav */
+        .d-nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
         .d-nav-item {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 12px;
-          border-radius: 8px;
-          font-size: 13.5px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 14px;
+          border-radius: 14px;
+          font-size: 14px;
           font-weight: 500;
-          color: var(--ink2);
+          color: #94a3b8;
           cursor: pointer;
+          background: transparent;
           border: none;
-          background: none;
           width: 100%;
           text-align: left;
-          font-family: 'Outfit', sans-serif;
-          transition: all 0.15s;
+          font-family: 'Inter', sans-serif;
+          transition: all 0.2s ease;
         }
-        .d-nav-item:hover  { background: #f4f4f5; color: var(--ink); }
-        .d-nav-item.active { background: #fdf3e3; color: var(--gold); font-weight: 600; }
-        .d-nav-item .ni    { font-size: 15px; width: 20px; text-align: center; }
+        .d-nav-item:hover {
+          background: #f5f5f5;
+          color: #1e293b;
+        }
+        .d-nav-item.active {
+          background: white;
+          color: #1e293b;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+        .nav-icon {
+          width: 34px; height: 34px;
+          border-radius: 50%;
+          background: #f3f4f6;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          transition: background 0.2s;
+        }
+        .d-nav-item.active .nav-icon {
+          background: var(--gold);
+          color: white;
+        }
+        .d-nav-item.active .nav-icon svg { color: white; }
+
+        /* Sidebar Footer */
         .d-sidebar-foot {
           border-top: 1px solid var(--border);
           padding-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
         }
         .d-user-row {
           display: flex; align-items: center; gap: 10px;
-          padding: 10px 8px; margin-bottom: 8px;
+          padding: 6px 4px;
         }
         .d-avatar {
           width: 34px; height: 34px;
@@ -230,20 +275,45 @@ export default function Dashboard() {
           color: white; font-weight: 700; font-size: 13px;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
+          font-family: 'Inter', sans-serif;
         }
         .d-uname { font-size: 13px; font-weight: 600; color: var(--ink); }
         .d-urole { font-size: 11px; color: var(--ink3); }
-        .d-logout {
-          width: 100%; padding: 9px 12px;
-          background: none; border: 1px solid var(--border);
-          border-radius: 8px; color: var(--ink2);
-          font-size: 13px; font-family: 'Outfit', sans-serif;
-          cursor: pointer; text-align: left; transition: all 0.15s;
-        }
-        .d-logout:hover { border-color: var(--red); color: var(--red); background: #fef2f2; }
 
+        .d-logout {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          padding: 10px 14px;
+          background: none;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--ink2);
+          font-size: 13.5px;
+          font-family: 'Inter', sans-serif;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .d-logout:hover {
+          border-color: var(--red);
+          color: var(--red);
+          background: #fef2f2;
+        }
+        .d-logout .logout-icon-wrap {
+          width: 28px; height: 28px;
+          border-radius: 6px;
+          background: #f4f4f5;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          transition: background 0.15s;
+        }
+        .d-logout:hover .logout-icon-wrap { background: #fee2e2; }
+
+        /* ── MAIN ── */
         .d-main {
-          margin-left: 220px;
+          margin-left: 240px;
           flex: 1;
           padding: 40px 40px 60px;
         }
@@ -264,7 +334,7 @@ export default function Dashboard() {
           background: var(--gold); color: white;
           border: none; border-radius: 9px;
           font-size: 13.5px; font-weight: 600;
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Inter', sans-serif;
           cursor: pointer; transition: background 0.15s;
           white-space: nowrap;
         }
@@ -454,6 +524,7 @@ export default function Dashboard() {
         }
         .d-uitem-date { font-size:11px; color:var(--ink3); white-space:nowrap; }
 
+        /* ── MODAL ── */
         .d-overlay {
           position:fixed; inset:0;
           background:rgba(0,0,0,0.35); backdrop-filter:blur(3px);
@@ -485,7 +556,7 @@ export default function Dashboard() {
         .d-minput {
           width:100%; padding:12px 14px;
           border:1px solid var(--border); border-radius:9px;
-          font-size:13.5px; font-family:'Outfit',sans-serif;
+          font-size:13.5px; font-family:'Inter',sans-serif;
           color:var(--ink); background:var(--bg); outline:none;
           transition: border 0.15s, box-shadow 0.15s;
         }
@@ -497,17 +568,31 @@ export default function Dashboard() {
           border:1px solid var(--border); border-radius:9px;
           background:none; color:var(--ink2);
           font-size:13.5px; font-weight:500;
-          font-family:'Outfit',sans-serif; cursor:pointer; transition:all 0.15s;
+          font-family:'Inter',sans-serif; cursor:pointer; transition:all 0.15s;
         }
         .d-mbtn-cancel:hover { background:#f4f4f5; }
         .d-mbtn-save {
           flex:1; padding:12px; border:none;
           border-radius:9px; background:var(--gold); color:white;
           font-size:13.5px; font-weight:600;
-          font-family:'Outfit',sans-serif; cursor:pointer; transition:background 0.15s;
+          font-family:'Inter',sans-serif; cursor:pointer; transition:background 0.15s;
         }
         .d-mbtn-save:hover    { background:#a87328; }
         .d-mbtn-save:disabled { opacity:0.6; cursor:not-allowed; }
+
+        /* Task action buttons */
+        .d-task-btn {
+          padding: 5px 10px;
+          font-size: 11.5px; font-weight: 500;
+          font-family: 'Inter', sans-serif;
+          border: none; border-radius: 6px;
+          cursor: pointer; transition: opacity 0.15s;
+          white-space: nowrap;
+        }
+        .d-task-btn:hover { opacity: 0.85; }
+        .d-task-btn-toggle-done { background: #dcfce7; color: #16a34a; }
+        .d-task-btn-toggle-undo { background: #fef9c3; color: #a16207; }
+        .d-task-btn-delete      { background: #fee2e2; color: #dc2626; }
 
         @media(max-width:1024px){
           .d-stats { grid-template-columns:repeat(2,1fr); }
@@ -520,26 +605,30 @@ export default function Dashboard() {
       `}</style>
 
       <div className="d-root">
+        {/* ── SIDEBAR ── */}
         <aside className="d-sidebar">
-          <div className="d-logo">TimeMap</div>
-          <p className="d-tagline">Your study companion</p>
+          <div className="d-logo-row">
+            <div className="d-logo-icon">
+  <img src={logo1} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+</div>
+            <span className="d-logo-text">TimeMap</span>
+          </div>
+
           <nav className="d-nav">
-            {[
-              { id:"dashboard", icon:"", label:"Dashboard" },
-              { id:"tasks",     icon:"", label:"My Tasks" },
-              { id:"calendar",  icon:"", label:"Calendar" },
-              { id:"analytics", icon:"", label:"Analytics" },
-              { id:"timer",     icon:"", label:"Focus Timer" },
-            ].map(n => (
+            {navItems.map(({ id, Icon, label }) => (
               <button
-                key={n.id}
-                className={`d-nav-item ${activeNav === n.id ? "active" : ""}`}
-                onClick={() => setActiveNav(n.id)}
+                key={id}
+                className={`d-nav-item ${activeNav === id ? "active" : ""}`}
+                onClick={() => setActiveNav(id)}
               >
-                <span className="ni">{n.icon}</span> {n.label}
+                <span className="nav-icon">
+                  <Icon size={16} strokeWidth={2} />
+                </span>
+                {label}
               </button>
             ))}
           </nav>
+
           <div className="d-sidebar-foot">
             <div className="d-user-row">
               <div className="d-avatar">{username[0].toUpperCase()}</div>
@@ -548,14 +637,21 @@ export default function Dashboard() {
                 <div className="d-urole">Student</div>
               </div>
             </div>
-            <button className="d-logout" onClick={handleLogout}>🚪 &nbsp;Sign out</button>
+            {/* ── FIX: LogOut is now properly imported from lucide-react ── */}
+            <button className="d-logout" onClick={handleLogout}>
+              <span className="logout-icon-wrap">
+                <LogOut size={14} strokeWidth={2} />
+              </span>
+              Sign out
+            </button>
           </div>
         </aside>
 
+        {/* ── MAIN ── */}
         <main className="d-main">
           <div className="d-topbar">
             <div>
-              <h1 className="d-welcome">{greeting}, <em>{username}</em> :) </h1>
+              <h1 className="d-welcome">{greeting}, <em>{username}</em> :)</h1>
               <p className="d-date-str">
                 {today.toLocaleDateString("en-US",{ weekday:"long", year:"numeric", month:"long", day:"numeric" })}
               </p>
@@ -591,7 +687,7 @@ export default function Dashboard() {
               </div>
               {tasks.length === 0 ? (
                 <div className="d-empty">
-                  <div className="d-empty-icon"></div>
+                  <div className="d-empty-icon">📋</div>
                   <div className="d-empty-text">No tasks yet</div>
                   <div className="d-empty-sub">Add your first study task to get started</div>
                 </div>
@@ -611,7 +707,7 @@ export default function Dashboard() {
                             <span>⚡ {calculateRisk(t)} risk</span>
                           </div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:"6px" }}>
                           <span className="d-pill" style={{
                             background: t.status === "Completed" ? "#f0fdf4" : "#fdf3e3",
                             color:      t.status === "Completed" ? "#16a34a" : "#c48b32",
@@ -619,30 +715,19 @@ export default function Dashboard() {
                             {t.status}
                           </span>
                           <button
-                          onClick={() => updateStatus(t.id, t.status === "Completed" ? "Pending" : "Completed")}
-                            style={{
-                            padding: "4px 6px", fontSize: "11px",
-                            background: t.status === "Completed" ? "#22c55e" :  "#f59e0b",
-                           color: "white",
-                           border: "none", borderRadius: "6px", cursor: "pointer"
-                            }}
-                           title={t.status === "Completed" ? "Mark as Pending" : "Mark as Completed"}
-                             >
-                            {t.status === "Completed" ? "✓" : "↩"}
-                            </button>
-
-              
-                          <button
-                            onClick={() => deleteTask(t.id)}
-                            style={{
-                              padding: "4px 6px", fontSize: "11px",
-                              background: "#db553b", color: "white",
-                              border: "none", borderRadius: "6px", cursor: "pointer"
-                            }}
+                            className={`d-task-btn ${t.status === "Completed" ? "d-task-btn-toggle-undo" : "d-task-btn-toggle-done"}`}
+                            onClick={() => updateStatus(t.id, t.status === "Completed" ? "Pending" : "Completed")}
+                            title={t.status === "Completed" ? "Mark as Pending" : "Mark as Completed"}
                           >
-                            🗑
+                            {t.status === "Completed" ? "Undo" : "Done"}
                           </button>
-
+                          <button
+                            className="d-task-btn d-task-btn-delete"
+                            onClick={() => deleteTask(t.id)}
+                            title="Delete task"
+                          >
+                            Delete
+                          </button>
                           <span className={`d-dl ${dl.cls}`}>{dl.label}</span>
                         </div>
                       </div>
@@ -726,16 +811,17 @@ export default function Dashboard() {
         </main>
       </div>
 
+      {/* ── MODAL — FIX: replaced <form> with <div>, button uses onClick ── */}
       {showModal && (
         <div className="d-overlay" onClick={() => setShowModal(false)}>
           <div className="d-modal" onClick={e => e.stopPropagation()}>
             <h2 className="d-modal-title">Add Study Task</h2>
             <p className="d-modal-sub">Fill in the details for your new task</p>
-            <form className="d-mform" onSubmit={handleAddTask}>
+            <div className="d-mform">
               <div>
                 <label className="d-mlabel">Task Name *</label>
                 <input className="d-minput" name="task_name" placeholder="e.g. Chapter 5 revision"
-                  value={form.task_name} onChange={handleChange} required/>
+                  value={form.task_name} onChange={handleChange}/>
               </div>
               <div>
                 <label className="d-mlabel">Subject / Category</label>
@@ -761,15 +847,22 @@ export default function Dashboard() {
               <div>
                 <label className="d-mlabel">Deadline *</label>
                 <input className="d-minput" name="deadline" type="date"
-                  value={form.deadline} onChange={handleChange} required/>
+                  value={form.deadline} onChange={handleChange}/>
               </div>
               <div className="d-mactions">
-                <button type="button" className="d-mbtn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="d-mbtn-save" disabled={saving}>
+                <button type="button" className="d-mbtn-cancel" onClick={() => setShowModal(false)}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="d-mbtn-save"
+                  disabled={saving}
+                  onClick={handleAddTask}
+                >
                   {saving ? "Saving…" : "Add Task"}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
