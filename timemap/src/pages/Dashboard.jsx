@@ -29,22 +29,45 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
- const fetchTasks = async () => {
-  if (!userId) return;
-  try {
-    const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
-    if (!r.ok) {
-      console.error('Failed to fetch tasks');
-      return;
+  // ✅ FETCH TASKS
+  const fetchTasks = async () => {
+    if (!userId) return;
+    try {
+      const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
+      if (!r.ok) { console.error("Failed to fetch tasks"); return; }
+      const d = await r.json();
+      setTasks(d.tasks || []);
+    } catch (e) {
+      console.error("Error fetching tasks:", e);
+      setTasks([]);
     }
-    const d = await r.json();
-    console.log('Tasks received:', d);  // Debug log
-    setTasks(d.tasks || []);
-  } catch(e) { 
-    console.error('Error fetching tasks:', e); 
-    setTasks([]);  // Set empty array on error
-  }
-};
+  };
+
+  // ✅ DELETE TASK — now at component scope, accessible in JSX
+  const deleteTask = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) fetchTasks();
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
+  // ✅ UPDATE STATUS — now at component scope, accessible in JSX
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) fetchTasks();
+    } catch (err) {
+      console.error("Update error:", err);
+    }
+  };
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -56,7 +79,11 @@ export default function Dashboard() {
       const r = await fetch("http://localhost:5000/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, user_id: parseInt(userId) }),
+        body: JSON.stringify({
+          ...form,
+          user_id: parseInt(userId),
+          status: "Pending"
+        }),
       });
       if (r.ok) {
         setForm({ task_name:"", subject_category:"", difficulty_level:"Medium", estimated_hours:"", deadline:"" });
@@ -85,6 +112,14 @@ export default function Dashboard() {
     if (d === 0) return { label: "Today",      cls: "today" };
     if (d <= 3)  return { label: `${d}d left`, cls: "soon"  };
     return        { label: `${d}d left`,       cls: "ok"    };
+  };
+
+  // ✅ RISK LOGIC
+  const calculateRisk = (task) => {
+    const days = (new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+    if (days <= 1) return "High";
+    if (days <= 3) return "Medium";
+    return "Low";
   };
 
   const subjectColor = s => {
@@ -573,14 +608,43 @@ export default function Dashboard() {
                           <div className="d-task-meta">
                             <span>📁 {t.subject_category || "General"}</span>
                             <span>📅 {t.deadline}</span>
-                            <span>⚡ {t.risk || "Medium"} risk</span>
+                            <span>⚡ {calculateRisk(t)} risk</span>
                           </div>
                         </div>
-                        <span className="d-pill" style={{
-                          background: t.status==="Completed" ? "#f0fdf4":"#fdf3e3",
-                          color:      t.status==="Completed" ? "#16a34a":"#c48b32",
-                        }}>{t.status}</span>
-                        <span className={`d-dl ${dl.cls}`}>{dl.label}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span className="d-pill" style={{
+                            background: t.status === "Completed" ? "#f0fdf4" : "#fdf3e3",
+                            color:      t.status === "Completed" ? "#16a34a" : "#c48b32",
+                          }}>
+                            {t.status}
+                          </span>
+                          <button
+                          onClick={() => updateStatus(t.id, t.status === "Completed" ? "Pending" : "Completed")}
+                            style={{
+                            padding: "4px 6px", fontSize: "11px",
+                            background: t.status === "Completed" ? "#22c55e" :  "#f59e0b",
+                           color: "white",
+                           border: "none", borderRadius: "6px", cursor: "pointer"
+                            }}
+                           title={t.status === "Completed" ? "Mark as Pending" : "Mark as Completed"}
+                             >
+                            {t.status === "Completed" ? "✓" : "↩"}
+                            </button>
+
+              
+                          <button
+                            onClick={() => deleteTask(t.id)}
+                            style={{
+                              padding: "4px 6px", fontSize: "11px",
+                              background: "#db553b", color: "white",
+                              border: "none", borderRadius: "6px", cursor: "pointer"
+                            }}
+                          >
+                            🗑
+                          </button>
+
+                          <span className={`d-dl ${dl.cls}`}>{dl.label}</span>
+                        </div>
                       </div>
                     );
                   })}

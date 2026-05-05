@@ -52,9 +52,11 @@ def login():
     return jsonify({'user_id': user.id, 'username': user.username}), 200
 
 
+# ✅ CREATE TASK
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
     data = request.json
+
     task = Task(
         user_id=data['user_id'],
         task_name=data['task_name'],
@@ -62,15 +64,21 @@ def create_task():
         difficulty_level=data['difficulty_level'],
         estimated_hours=data['estimated_hours'],
         deadline=datetime.strptime(data['deadline'], '%Y-%m-%d'),
-        ml_risk_prediction='Medium'
+        ml_risk_prediction='Medium',
+        status='Pending'
     )
+
     db.session.add(task)
     db.session.commit()
+
     return jsonify({'task_id': task.id}), 201
 
+
+# ✅ GET TASKS
 @app.route('/api/tasks/<int:user_id>', methods=['GET'])
 def get_tasks(user_id):
     tasks = Task.query.filter_by(user_id=user_id).all()
+
     return jsonify({'tasks': [
         {
             'id': t.id,
@@ -81,5 +89,36 @@ def get_tasks(user_id):
         } for t in tasks
     ]})
 
+
+# ✅ DELETE TASK
+@app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    task = Task.query.get(task_id)
+
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    db.session.delete(task)
+    db.session.commit()
+
+    return jsonify({'message': 'Task deleted'}), 200
+
+
+# ✅ UPDATE TASK STATUS
+@app.route('/api/tasks/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    task = Task.query.get(task_id)
+
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    data = request.json
+
+    if 'status' in data:
+        task.status = data['status']
+
+    db.session.commit()
+
+    return jsonify({'message': 'Task updated'}), 200
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
