@@ -636,7 +636,7 @@ export default function Dashboard() {
                             onClick={() => deleteTask(t.id)}
                             style={{
                               padding: "4px 6px", fontSize: "11px",
-                              background: "#ef4444", color: "white",
+                              background: "#db553b", color: "white",
                               border: "none", borderRadius: "6px", cursor: "pointer"
                             }}
                           >
