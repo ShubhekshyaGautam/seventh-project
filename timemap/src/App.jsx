@@ -4,6 +4,7 @@ import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import Dashboard from "./pages/Dashboard";
+import MyTask    from "./pages/MyTask";  
 
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/tasks"     element={<MyTask />} /> 
       </Routes>
 
     </BrowserRouter>
