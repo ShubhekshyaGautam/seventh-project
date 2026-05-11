@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
@@ -561,7 +561,7 @@ export default function Dashboard() {
         <main className="d-main">
           <div className="d-topbar">
             <div>
-              <h1 className="d-welcome">{greeting}, <em>{username}</em> :) </h1>
+              <h1 className="d-welcome">{greeting}, <em>{username}</em> {":)"} </h1>
               <p className="d-date-str">
                 {today.toLocaleDateString("en-US",{ weekday:"long", year:"numeric", month:"long", day:"numeric" })}
               </p>
