@@ -802,7 +802,9 @@ export default function Dashboard() {
                     ))
                   }
                   {tasks.filter(t => new Date(t.deadline) >= today && t.status !== "Completed").length === 0 && (
-                    <p style={{fontSize:"12.5px",color:"var(--ink3)"}}>No upcoming deadlines 🎉</p>
+                    <p style={{fontSize:"12.5px", color:"#2d2f32"}}>
+  No upcoming deadlines 🎉
+</p>
                   )}
                 </div>
               </div>
