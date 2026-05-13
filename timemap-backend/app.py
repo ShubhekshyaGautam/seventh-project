@@ -122,8 +122,6 @@ def update_task(task_id):
     db.session.commit()
 
     return jsonify({'message': 'Task updated'}), 200
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
 
 # ✅ FORGOT PASSWORD
 @app.route('/api/forgot-password', methods=['POST'])
@@ -179,3 +177,6 @@ def reset_password():
     db.session.commit()
 
     return jsonify({'message': 'Password reset successful'}), 200
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

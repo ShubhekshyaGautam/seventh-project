@@ -7,6 +7,8 @@ import Dashboard from "./pages/Dashboard";
 import MyTask    from "./pages/MyTask";  
 import FocusTimer from "./pages/FocusTimer";
 import Calendar from "./pages/Calendar";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="/tasks"     element={<MyTask />} /> 
        <Route path="/timer" element={<FocusTimer />} />
        <Route path="/calendar" element={<Calendar />} />
+       <Route path="/forgot-password" element={<ForgotPassword />} />
+       <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
 
     </BrowserRouter>
