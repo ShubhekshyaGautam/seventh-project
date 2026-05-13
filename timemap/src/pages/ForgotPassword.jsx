@@ -39,8 +39,11 @@ const ForgotPassword = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(`Your OTP is: ${data.otp}`);
-                navigate("/reset-password");
+                navigate("/reset-password", {
+                    state: {
+                        otp: data.otp,
+                    },
+                });
             } else {
                 setError(data.error || "Something went wrong");
             }
@@ -207,7 +210,7 @@ const ForgotPassword = () => {
                             {message && <p className="success">{message}</p>}
 
                             <button type="submit" className="main-btn">
-                                {loading ? "Sending..." : "Send Reset Token"}
+                                {loading ? "Sending..." : "Send OTP"}
                             </button>
 
                         </form>

@@ -1,17 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import backgroundImage from "../assets/img/bg.png";
+
 
 const ResetPassword = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Token passed from ForgotPassword page
-    const initialToken = location.state?.token || "";
+    const receivedOtp = location.state?.otp || "";
+    const [showOtpPopup, setShowOtpPopup] = useState(!!receivedOtp);
+    useEffect(() => {
+        if (receivedOtp) {
+            const timer = setTimeout(() => {
+                setShowOtpPopup(false);
+            }, 6000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [receivedOtp]);
 
     const [form, setForm] = useState({
-        otp: "",
+        otp: receivedOtp,
         newPassword: "",
         confirmPassword: "",
     });
@@ -67,7 +77,7 @@ const ResetPassword = () => {
         setMessage("");
 
         if (
-            !form.token ||
+            !form.otp ||
             !form.newPassword ||
             !form.confirmPassword
         ) {
@@ -266,8 +276,107 @@ const ResetPassword = () => {
             display:none;
           }
         }
-      `}</style>
+          /* OTP POPUP */
 
+        .otp-popup{
+        position:fixed;
+        top:20px;
+        right:20px;
+        z-index:9999;
+        animation:slideIn 0.3s ease;
+        }
+
+        .otp-card{
+        width:320px;
+        background:white;
+        border-radius:14px;
+        padding:22px;
+        box-shadow:0 10px 30px rgba(0,0,0,0.15);
+        border-left:5px solid #c48b32;
+        }
+
+        .otp-card h3{
+        font-size:20px;
+        margin-bottom:10px;
+        color:#222;
+        }
+
+        .otp-info{
+        font-size:14px;
+        color:#666;
+        margin-bottom:16px;
+        line-height:1.5;
+        }
+
+        .otp-code{
+        background:#f7f7f7;
+        padding:14px;
+        border-radius:10px;
+        text-align:center;
+        font-size:28px;
+        font-weight:700;
+        letter-spacing:6px;
+        color:#c48b32;
+        margin-bottom:12px;
+        }
+
+        .otp-warning{
+        font-size:12px;
+        color:#999;
+        }
+
+        @keyframes slideIn{
+        from{
+            opacity:0;
+            transform:translateX(40px);
+        }
+
+        to{
+            opacity:1;
+            transform:translateX(0);
+        }
+        }
+        .otp-popup.hide{
+            animation:fadeOut 0.4s ease forwards;
+            }
+
+            @keyframes fadeOut{
+            from{
+                opacity:1;
+                transform:translateX(0);
+            }
+
+            to{
+                opacity:0;
+                transform:translateX(40px);
+            }
+        }
+      `}
+            </style>
+
+            {showOtpPopup && (
+                <div className="otp-popup">
+
+                    <div className="otp-card">
+
+                        <h3>Development Mode OTP</h3>
+
+                        <p className="otp-info">
+                            Email OTP delivery is disabled in development mode.
+                        </p>
+
+                        <div className="otp-code">
+                            {receivedOtp}
+                        </div>
+
+                        <p className="otp-warning">
+                            This popup will disappear automatically.
+                        </p>
+
+                    </div>
+
+                </div>
+            )}
             <div className="container">
 
                 {/* LEFT */}
@@ -279,7 +388,7 @@ const ResetPassword = () => {
                         <h2 className="title">Reset Password</h2>
 
                         <p className="subtitle">
-                            Enter your token and new password
+                            Enter your OTP and new password
                         </p>
 
                         <form className="form" onSubmit={handleSubmit}>

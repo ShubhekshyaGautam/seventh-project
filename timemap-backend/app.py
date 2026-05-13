@@ -156,20 +156,29 @@ def reset_password():
     data = request.json
 
     otp = data.get('otp')
+    new_password = data.get('new_password')
+
+    # Validate input
+    if not otp or not new_password:
+        return jsonify({'error': 'OTP and new password required'}), 400
+
+    # Find user by OTP
     user = User.query.filter_by(reset_otp=otp).first()
 
-    user = User.query.filter_by(reset_token=token).first()
-
     if not user:
-        return jsonify({'error': 'Invalid token'}), 400
+        return jsonify({'error': 'Invalid OTP'}), 400
 
-    # Check token expiration
+    # Check expiration
     if user.reset_otp_expiration < datetime.utcnow():
-        return jsonify({'error': 'Token expired'}), 400
+        return jsonify({'error': 'OTP expired'}), 400
 
-    # Update password
-    user.password_hash = generate_password_hash(new_password)
+    # Hash new password
+    hashed_password = generate_password_hash(new_password)
 
+    # Save hashed password
+    user.password_hash = hashed_password
+
+    # Clear OTP after successful reset
     user.reset_otp = None
     user.reset_otp_expiration = None
 
