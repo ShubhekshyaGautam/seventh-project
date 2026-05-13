@@ -155,8 +155,8 @@ def forgot_password():
 def reset_password():
     data = request.json
 
-    token = data.get('token')
-    new_password = data.get('new_password')
+    otp = data.get('otp')
+    user = User.query.filter_by(reset_otp=otp).first()
 
     user = User.query.filter_by(reset_token=token).first()
 
@@ -164,15 +164,14 @@ def reset_password():
         return jsonify({'error': 'Invalid token'}), 400
 
     # Check token expiration
-    if user.reset_token_expiration < datetime.utcnow():
+    if user.reset_otp_expiration < datetime.utcnow():
         return jsonify({'error': 'Token expired'}), 400
 
     # Update password
     user.password_hash = generate_password_hash(new_password)
 
-    # Clear token after successful reset
-    user.reset_token = None
-    user.reset_token_expiration = None
+    user.reset_otp = None
+    user.reset_otp_expiration = None
 
     db.session.commit()
 

@@ -39,11 +39,8 @@ const ForgotPassword = () => {
             const data = await response.json();
 
             if (response.ok) {
-                navigate("/reset-password", {
-                    state: {
-                        token: data.reset_token,
-                    },
-                });
+                alert(`Your OTP is: ${data.otp}`);
+                navigate("/reset-password");
             } else {
                 setError(data.error || "Something went wrong");
             }

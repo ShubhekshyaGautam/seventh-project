@@ -12,29 +12,29 @@ const Login = () => {
   const [error, setError] = useState("");
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!form.emailPhone || !form.password) {
-    setError("All fields are required!");
-    return;
-  }
+    if (!form.emailPhone || !form.password) {
+      setError("All fields are required!");
+      return;
+    }
 
-  setLoading(true);
-  setError("");
+    setLoading(true);
+    setError("");
 
-  const result = await loginUser(form);
+    const result = await loginUser(form);
 
-  setLoading(false);
-console.log("Login result:", result);
-  if (result.success) {
-    localStorage.setItem("user_id", result.data.user_id);
-localStorage.setItem("username", result.data.username);
-    navigate("/dashboard");
-  } else {
-    setError(result.error);
-  }
-};
+    setLoading(false);
+    console.log("Login result:", result);
+    if (result.success) {
+      localStorage.setItem("user_id", result.data.user_id);
+      localStorage.setItem("username", result.data.username);
+      navigate("/dashboard");
+    } else {
+      setError(result.error);
+    }
+  };
   return (
     <>
       <style>{`
@@ -243,7 +243,12 @@ localStorage.setItem("username", result.data.username);
 
               </div>
 
-              <p className="forgot">Forgot password?</p>
+              <p
+                className="forgot"
+                onClick={() => navigate("/forgot-password")}
+              >
+                Forgot password?
+              </p>
               {error && <p style={{ color: "red", fontSize: "13px" }}>{error}</p>}
               <button type="submit" className="main-btn">
                 Log in

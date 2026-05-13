@@ -4,125 +4,125 @@ import { Eye, EyeOff } from "lucide-react";
 import backgroundImage from "../assets/img/bg.png";
 
 const ResetPassword = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  // Token passed from ForgotPassword page
-  const initialToken = location.state?.token || "";
+    // Token passed from ForgotPassword page
+    const initialToken = location.state?.token || "";
 
-  const [form, setForm] = useState({
-    token: initialToken,
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const [passwordMessage, setPasswordMessage] = useState("");
-
-  const validatePassword = (password) => {
-    if (password.length < 8) {
-      return "Password should be at least 8 characters";
-    }
-
-    if (!/[A-Z]/.test(password)) {
-      return "Add at least one uppercase letter";
-    }
-
-    if (!/[a-z]/.test(password)) {
-      return "Add at least one lowercase letter";
-    }
-
-    if (!/[0-9]/.test(password)) {
-      return "Add at least one number";
-    }
-
-    if (!/[!@#$%^&*]/.test(password)) {
-      return "Add at least one special character";
-    }
-
-    return "Strong password ✓";
-  };
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
+    const [form, setForm] = useState({
+        otp: "",
+        newPassword: "",
+        confirmPassword: "",
     });
 
-    if (e.target.name === "newPassword") {
-      setPasswordMessage(validatePassword(e.target.value));
-    }
-  };
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    setError("");
-    setMessage("");
+    const [passwordMessage, setPasswordMessage] = useState("");
 
-    if (
-      !form.token ||
-      !form.newPassword ||
-      !form.confirmPassword
-    ) {
-      setError("All fields are required");
-      return;
-    }
-
-    if (form.newPassword !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (!passwordMessage.includes("Strong")) {
-      setError("Please create a stronger password");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch(
-        "http://127.0.0.1:5000/api/reset-password",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token: form.token,
-            new_password: form.newPassword,
-          }),
+    const validatePassword = (password) => {
+        if (password.length < 8) {
+            return "Password should be at least 8 characters";
         }
-      );
 
-      const data = await response.json();
+        if (!/[A-Z]/.test(password)) {
+            return "Add at least one uppercase letter";
+        }
 
-      if (response.ok) {
-        setMessage("Password reset successful!");
+        if (!/[a-z]/.test(password)) {
+            return "Add at least one lowercase letter";
+        }
 
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        setError(data.error || "Reset failed");
-      }
-    } catch (err) {
-      setError("Server error");
-    }
+        if (!/[0-9]/.test(password)) {
+            return "Add at least one number";
+        }
 
-    setLoading(false);
-  };
+        if (!/[!@#$%^&*]/.test(password)) {
+            return "Add at least one special character";
+        }
 
-  return (
-    <>
-      <style>{`
+        return "Strong password ✓";
+    };
+
+    const handleChange = (e) => {
+        setForm({
+            ...form,
+            [e.target.name]: e.target.value,
+        });
+
+        if (e.target.name === "newPassword") {
+            setPasswordMessage(validatePassword(e.target.value));
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setError("");
+        setMessage("");
+
+        if (
+            !form.token ||
+            !form.newPassword ||
+            !form.confirmPassword
+        ) {
+            setError("All fields are required");
+            return;
+        }
+
+        if (form.newPassword !== form.confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
+        if (!passwordMessage.includes("Strong")) {
+            setError("Please create a stronger password");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const response = await fetch(
+                "http://127.0.0.1:5000/api/reset-password",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        otp: form.otp,
+                        new_password: form.newPassword,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setMessage("Password reset successful!");
+
+                setTimeout(() => {
+                    navigate("/login");
+                }, 2000);
+            } else {
+                setError(data.error || "Reset failed");
+            }
+        } catch (err) {
+            setError("Server error");
+        }
+
+        setLoading(false);
+    };
+
+    return (
+        <>
+            <style>{`
         *{
           box-sizing:border-box;
           margin:0;
@@ -268,154 +268,154 @@ const ResetPassword = () => {
         }
       `}</style>
 
-      <div className="container">
+            <div className="container">
 
-        {/* LEFT */}
+                {/* LEFT */}
 
-        <div className="left">
+                <div className="left">
 
-          <div className="form-box">
+                    <div className="form-box">
 
-            <h2 className="title">Reset Password</h2>
+                        <h2 className="title">Reset Password</h2>
 
-            <p className="subtitle">
-              Enter your token and new password
-            </p>
+                        <p className="subtitle">
+                            Enter your token and new password
+                        </p>
 
-            <form className="form" onSubmit={handleSubmit}>
+                        <form className="form" onSubmit={handleSubmit}>
 
-              <input
-                type="text"
-                name="token"
-                className="input"
-                placeholder="Reset token"
-                value={form.token}
-                onChange={handleChange}
-              />
+                            <input
+                                type="text"
+                                name="otp"
+                                className="input"
+                                placeholder="Enter OTP"
+                                value={form.otp}
+                                onChange={handleChange}
+                            />
 
-              {/* NEW PASSWORD */}
+                            {/* NEW PASSWORD */}
 
-              <div className="password-box">
+                            <div className="password-box">
 
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="password-input"
-                  name="newPassword"
-                  placeholder="New password"
-                  value={form.newPassword}
-                  onChange={handleChange}
-                />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    className="password-input"
+                                    name="newPassword"
+                                    placeholder="New password"
+                                    value={form.newPassword}
+                                    onChange={handleChange}
+                                />
 
-                <span
-                  className="eye"
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
-                >
-                  {showPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </span>
+                                <span
+                                    className="eye"
+                                    onClick={() =>
+                                        setShowPassword(!showPassword)
+                                    }
+                                >
+                                    {showPassword ? (
+                                        <EyeOff size={18} />
+                                    ) : (
+                                        <Eye size={18} />
+                                    )}
+                                </span>
 
-              </div>
+                            </div>
 
-              {/* PASSWORD MESSAGE */}
+                            {/* PASSWORD MESSAGE */}
 
-              {form.newPassword && (
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: passwordMessage.includes("Strong")
-                      ? "green"
-                      : "#d97706",
-                    marginTop: "-8px",
-                  }}
-                >
-                  {passwordMessage}
-                </p>
-              )}
+                            {form.newPassword && (
+                                <p
+                                    style={{
+                                        fontSize: "12px",
+                                        color: passwordMessage.includes("Strong")
+                                            ? "green"
+                                            : "#d97706",
+                                        marginTop: "-8px",
+                                    }}
+                                >
+                                    {passwordMessage}
+                                </p>
+                            )}
 
-              {/* CONFIRM PASSWORD */}
+                            {/* CONFIRM PASSWORD */}
 
-              <div className="password-box">
+                            <div className="password-box">
 
-                <input
-                  type={showConfirm ? "text" : "password"}
-                  className="password-input"
-                  name="confirmPassword"
-                  placeholder="Confirm password"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                />
+                                <input
+                                    type={showConfirm ? "text" : "password"}
+                                    className="password-input"
+                                    name="confirmPassword"
+                                    placeholder="Confirm password"
+                                    value={form.confirmPassword}
+                                    onChange={handleChange}
+                                />
 
-                <span
-                  className="eye"
-                  onClick={() =>
-                    setShowConfirm(!showConfirm)
-                  }
-                >
-                  {showConfirm ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </span>
+                                <span
+                                    className="eye"
+                                    onClick={() =>
+                                        setShowConfirm(!showConfirm)
+                                    }
+                                >
+                                    {showConfirm ? (
+                                        <EyeOff size={18} />
+                                    ) : (
+                                        <Eye size={18} />
+                                    )}
+                                </span>
 
-              </div>
+                            </div>
 
-              {error && (
-                <p className="error">{error}</p>
-              )}
+                            {error && (
+                                <p className="error">{error}</p>
+                            )}
 
-              {message && (
-                <p className="success">{message}</p>
-              )}
+                            {message && (
+                                <p className="success">{message}</p>
+                            )}
 
-              <button
-                type="submit"
-                className="main-btn"
-              >
-                {loading
-                  ? "Resetting..."
-                  : "Reset Password"}
-              </button>
+                            <button
+                                type="submit"
+                                className="main-btn"
+                            >
+                                {loading
+                                    ? "Resetting..."
+                                    : "Reset Password"}
+                            </button>
 
-            </form>
+                        </form>
 
-            <p
-              className="back"
-              onClick={() => navigate("/login")}
-            >
-              ← Back to Login
-            </p>
+                        <p
+                            className="back"
+                            onClick={() => navigate("/login")}
+                        >
+                            ← Back to Login
+                        </p>
 
-          </div>
+                    </div>
 
-        </div>
+                </div>
 
-        {/* RIGHT */}
+                {/* RIGHT */}
 
-        <div className="right">
+                <div className="right">
 
-          <div className="overlay">
+                    <div className="overlay">
 
-            <h1 className="hero-title">
-              TimeMap
-            </h1>
+                        <h1 className="hero-title">
+                            TimeMap
+                        </h1>
 
-            <p className="hero-text">
-              Securely update your password.
-            </p>
+                        <p className="hero-text">
+                            Securely update your password.
+                        </p>
 
-          </div>
+                    </div>
 
-        </div>
+                </div>
 
-      </div>
-    </>
-  );
+            </div>
+        </>
+    );
 };
 
 export default ResetPassword;
