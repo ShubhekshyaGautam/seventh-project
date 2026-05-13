@@ -4,6 +4,8 @@ from models import db, User, Task, TimeLog
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import secrets
+from datetime import timedelta
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///timemap.db'
@@ -122,3 +124,58 @@ def update_task(task_id):
     return jsonify({'message': 'Task updated'}), 200
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+# ✅ FORGOT PASSWORD
+@app.route('/api/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.json
+
+    # Check if email exists
+    user = User.query.filter_by(email=data['email']).first()
+
+    if not user:
+        return jsonify({'error': 'Email not found'}), 404
+
+    # Generate secure reset token
+    reset_token = secrets.token_urlsafe(32)
+
+    # Save token + expiration time
+    user.reset_token = reset_token
+    user.reset_token_expiration = datetime.utcnow() + timedelta(hours=1)
+
+    db.session.commit()
+
+    # Normally send email here
+    # For now return token in response (testing purpose)
+    return jsonify({
+        'message': 'Password reset token generated',
+        'reset_token': reset_token
+    }), 200
+
+# ✅ RESET PASSWORD
+@app.route('/api/reset-password', methods=['POST'])
+def reset_password():
+    data = request.json
+
+    token = data.get('token')
+    new_password = data.get('new_password')
+
+    user = User.query.filter_by(reset_token=token).first()
+
+    if not user:
+        return jsonify({'error': 'Invalid token'}), 400
+
+    # Check token expiration
+    if user.reset_token_expiration < datetime.utcnow():
+        return jsonify({'error': 'Token expired'}), 400
+
+    # Update password
+    user.password_hash = generate_password_hash(new_password)
+
+    # Clear token after successful reset
+    user.reset_token = None
+    user.reset_token_expiration = None
+
+    db.session.commit()
+
+    return jsonify({'message': 'Password reset successful'}), 200
