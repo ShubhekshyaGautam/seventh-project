@@ -5,6 +5,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import secrets
+import random
 from datetime import timedelta
 
 app = Flask(__name__)
@@ -135,19 +136,18 @@ def forgot_password():
         return jsonify({'error': 'Email not found'}), 404
 
     # Generate secure reset token
-    reset_token = secrets.token_urlsafe(32)
+    otp = str(random.randint(100000, 999999))
 
-    # Save token + expiration time
-    user.reset_token = reset_token
-    user.reset_token_expiration = datetime.utcnow() + timedelta(hours=1)
+    user.reset_otp = otp
+    user.reset_otp_expiration = datetime.utcnow() + timedelta(minutes=10)
 
     db.session.commit()
 
     # Normally send email here
     # For now return token in response (testing purpose)
     return jsonify({
-        'message': 'Password reset token generated',
-        'reset_token': reset_token
+        'message': 'OTP generated successfully',
+        'otp': otp
     }), 200
 
 # ✅ RESET PASSWORD
