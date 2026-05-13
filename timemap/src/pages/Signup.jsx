@@ -10,38 +10,67 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
 
   const [form, setForm] = useState({
     name: "",
-    email: "",  
+    email: "",
     phone: "",
     password: "",
   });
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+  const validatePassword = (password) => {
+    if (password.length < 8) {
+      return "Password should be at least 8 characters";
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return "Add at least one uppercase letter";
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return "Add at least one lowercase letter";
+    }
+
+    if (!/[0-9]/.test(password)) {
+      return "Add at least one number";
+    }
+
+    if (!/[!@#$%^&*]/.test(password)) {
+      return "Add at least one special character";
+    }
+
+    return "Strong password ✓";
+  };
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!form.name || !form.email || !form.phone || !form.password) {
-    setError("All fields are required!");
-    return;
-  }
+    e.preventDefault();
 
-  setLoading(true);
-  setError("");
+    if (!form.name || !form.email || !form.phone || !form.password) {
+      setError("All fields are required!");
+      return;
+    }
 
-  const result = await registerUser(form);
+    if (validatePassword(form.password) !== "Strong password ✓") {
+      setError(validatePassword(form.password));
+      return;
+    }
 
-  setLoading(false);
+    setLoading(true);
+    setError("");
 
-  if (result.success) {
-    alert("Registration successful! Please login.");
-    navigate("/login");
-  } else {
-    setError(result.error);
-  }
-};
+    const result = await registerUser(form);
+
+    setLoading(false);
+
+    if (result.success) {
+      alert("Registration successful! Please login.");
+      navigate("/login");
+    } else {
+      setError(result.error);
+    }
+  };
 
   return (
     <>
@@ -280,13 +309,13 @@ display:none;
                 onChange={handleChange}
               />
 
-              <input 
-                 className="input"
-                 name="email"
-                 placeholder="Email *"
-                 onChange={handleChange}
-                 />
-              
+              <input
+                className="input"
+                name="email"
+                placeholder="Email *"
+                onChange={handleChange}
+              />
+
               <input
                 className="input"
                 name="phone"
@@ -301,17 +330,33 @@ display:none;
                   className="password-input"
                   name="password"
                   placeholder="Password *"
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setPasswordMessage(validatePassword(e.target.value));
+                  }}
                 />
 
                 <span
                   className="eye"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </span>
 
               </div>
+              {form.password && (
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: passwordMessage.includes("Strong")
+                      ? "green"
+                      : "#d97706",
+                    marginTop: "-8px",
+                  }}
+                >
+                  {passwordMessage}
+                </p>
+              )}
 
               <p className="terms">
                 By creating an account, you agree to our
@@ -337,8 +382,8 @@ display:none;
               </span>
             </p>
 
-            
-        
+
+
           </div>
         </div>
 
