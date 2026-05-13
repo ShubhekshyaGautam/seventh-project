@@ -10,6 +10,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     reset_token = db.Column(db.String(100), nullable=True)
     reset_token_expiration = db.Column(db.DateTime, nullable=True)
+    reset_otp = db.Column(db.String(6), nullable=True)
+    reset_otp_expiration = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Task(db.Model):
