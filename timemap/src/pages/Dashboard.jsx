@@ -139,13 +139,13 @@ export default function Dashboard() {
   const hour = today.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-  // ── FIX: using lucide-react icons instead of image imports ──
-  const navItems = [
-    { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
-    { id: "tasks",     Icon: CheckSquare,     label: "My Task"   },
-    { id: "calendar",  Icon: Calendar,        label: "Calendar"  },
-    { id: "analytics", Icon: BarChart2,       label: "Analytics" },
-    { id: "timer",     Icon: Timer,           label: "Focus Timer"},
+  
+const navItems = [
+    { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard",   path: "/dashboard" },
+    { id: "tasks",     Icon: CheckSquare,     label: "My Task",     path: "/tasks"     },
+    { id: "calendar",  Icon: Calendar,        label: "Calendar",    path: "/calendar"  },
+    { id: "analytics", Icon: BarChart2,       label: "Analytics",   path: "/analytics" },
+    { id: "timer",     Icon: Timer,           label: "Focus Timer", path: "/timer"     },
   ];
 
   return (
@@ -615,12 +615,13 @@ export default function Dashboard() {
           </div>
 
           <nav className="d-nav">
-            {navItems.map(({ id, Icon, label }) => (
-              <button
-                key={id}
-                className={`d-nav-item ${activeNav === id ? "active" : ""}`}
-                onClick={() => setActiveNav(id)}
-              >
+           
+{navItems.map(({ id, Icon, label, path }) => (
+  <button
+    key={id}
+    className={`d-nav-item ${activeNav === id ? "active" : ""}`}
+    onClick={() => { setActiveNav(id); navigate(path); }}
+  >
                 <span className="nav-icon">
                   <Icon size={16} strokeWidth={2} />
                 </span>
@@ -802,7 +803,9 @@ export default function Dashboard() {
                     ))
                   }
                   {tasks.filter(t => new Date(t.deadline) >= today && t.status !== "Completed").length === 0 && (
-                    <p style={{fontSize:"12.5px",color:"var(--ink3)"}}>No upcoming deadlines 🎉</p>
+                    <p style={{fontSize:"12.5px", color:"#2d2f32"}}>
+  No upcoming deadlines 🎉
+</p>
                   )}
                 </div>
               </div>
