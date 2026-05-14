@@ -4,6 +4,9 @@ from models import db, User, Task, TimeLog
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import secrets
+import random
+from datetime import timedelta
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///timemap.db'
@@ -120,5 +123,68 @@ def update_task(task_id):
     db.session.commit()
 
     return jsonify({'message': 'Task updated'}), 200
+
+# ✅ FORGOT PASSWORD
+@app.route('/api/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.json
+
+    # Check if email exists
+    user = User.query.filter_by(email=data['email']).first()
+
+    if not user:
+        return jsonify({'error': 'Email not found'}), 404
+
+    # Generate secure reset token
+    otp = str(random.randint(100000, 999999))
+
+    user.reset_otp = otp
+    user.reset_otp_expiration = datetime.utcnow() + timedelta(minutes=10)
+
+    db.session.commit()
+
+    # Normally send email here
+    # For now return token in response (testing purpose)
+    return jsonify({
+        'message': 'OTP generated successfully',
+        'otp': otp
+    }), 200
+
+# ✅ RESET PASSWORD
+@app.route('/api/reset-password', methods=['POST'])
+def reset_password():
+    data = request.json
+
+    otp = data.get('otp')
+    new_password = data.get('new_password')
+
+    # Validate input
+    if not otp or not new_password:
+        return jsonify({'error': 'OTP and new password required'}), 400
+
+    # Find user by OTP
+    user = User.query.filter_by(reset_otp=otp).first()
+
+    if not user:
+        return jsonify({'error': 'Invalid OTP'}), 400
+
+    # Check expiration
+    if user.reset_otp_expiration < datetime.utcnow():
+        return jsonify({'error': 'OTP expired'}), 400
+
+    # Hash new password
+    hashed_password = generate_password_hash(new_password)
+
+    # Save hashed password
+    user.password_hash = hashed_password
+
+    # Clear OTP after successful reset
+    user.reset_otp = None
+    user.reset_otp_expiration = None
+
+    db.session.commit()
+
+    return jsonify({'message': 'Password reset successful'}), 200
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -1,1 +1,4 @@
 *.db
+FEATURES.md
+*.pyc
+.env
