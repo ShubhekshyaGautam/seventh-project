@@ -14,11 +14,17 @@ class User(db.Model):
     reset_otp_expiration = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     task_name = db.Column(db.String(200), nullable=False)
-    subject_category = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.Text, nullable=True)
     difficulty_level = db.Column(db.Integer, nullable=False)
     estimated_hours = db.Column(db.Float, nullable=False)
     deadline = db.Column(db.DateTime, nullable=False)
