@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo1 from "../assets/img/logo1.png";
-
-// ── Lucide icons (replaces missing LogOut + nav icons) ──
 import {
-  LogOut,
-  LayoutDashboard,
-  CheckSquare,
-  Calendar,
-  BarChart2,
-  Timer,
+  LogOut, LayoutDashboard, CheckSquare, Calendar as CalendarIcon, BarChart2, Timer,
+  CheckCircle2, Circle, Plus, Check, Clock, AlertTriangle, ArrowRight
 } from "lucide-react";
 
 const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 const getFirstDay   = (year, month) => new Date(year, month, 1).getDay();
-const MONTHS = ["January","February","March","April","May","June",
-                "July","August","September","October","November","December"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 
 export default function Dashboard() {
@@ -23,79 +16,34 @@ export default function Dashboard() {
   const username  = localStorage.getItem("username") || "Student";
   const userId    = localStorage.getItem("user_id");
 
-  const [tasks,       setTasks]       = useState([]);
-  const [showModal,   setShowModal]   = useState(false);
-  const [saving,      setSaving]      = useState(false);
-  const [activeNav,   setActiveNav]   = useState("dashboard");
-  const [calDate,     setCalDate]     = useState(new Date());
-  const [form, setForm] = useState({
-    task_name: "", subject_category: "",
-    difficulty_level: "Medium", estimated_hours: "", deadline: "",
-  });
+  const [tasks, setTasks] = useState([]);
+  const [calDate, setCalDate] = useState(new Date());
 
   const today = new Date();
 
   useEffect(() => {
     if (!userId) { navigate("/login"); return; }
     fetchTasks();
-  }, []);
+  }, [userId]);
 
   const fetchTasks = async () => {
     if (!userId) return;
     try {
       const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
-      if (!r.ok) { console.error("Failed to fetch tasks"); return; }
+      if (!r.ok) return;
       const d = await r.json();
       setTasks(d.tasks || []);
-    } catch (e) {
-      console.error("Error fetching tasks:", e);
-      setTasks([]);
-    }
-  };
-
-  const deleteTask = async (id) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/tasks/${id}`, { method: "DELETE" });
-      if (res.ok) fetchTasks();
-    } catch (err) { console.error("Delete error:", err); }
+    } catch (e) { console.error(e); }
   };
 
   const updateStatus = async (id, newStatus) => {
     try {
       const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) fetchTasks();
-    } catch (err) { console.error("Update error:", err); }
-  };
-
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
-
-  // ── FIX: removed <form> onSubmit; now using onClick on the button ──
-  const handleAddTask = async () => {
-    if (!form.task_name || !form.deadline) return;
-    setSaving(true);
-    try {
-      const r = await fetch("http://localhost:5000/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, user_id: parseInt(userId), status: "Pending" }),
-      });
-      if (r.ok) {
-        setForm({ task_name:"", subject_category:"", difficulty_level:"Medium", estimated_hours:"", deadline:"" });
-        setShowModal(false);
-        fetchTasks();
-      }
-    } catch(e) { console.error(e); }
-    setSaving(false);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("username");
-    navigate("/login");
+    } catch (err) { console.error(err); }
   };
 
   const total     = tasks.length;
@@ -106,23 +54,10 @@ export default function Dashboard() {
 
   const daysLeft = dl => {
     const d = Math.ceil((new Date(dl) - today) / 86400000);
-    if (d < 0)   return { label: "Overdue",    cls: "over"  };
-    if (d === 0) return { label: "Today",      cls: "today" };
-    if (d <= 3)  return { label: `${d}d left`, cls: "soon"  };
-    return        { label: `${d}d left`,       cls: "ok"    };
-  };
-
-  const calculateRisk = (task) => {
-    const days = (new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24);
-    if (days <= 1) return "High";
-    if (days <= 3) return "Medium";
-    return "Low";
-  };
-
-  const subjectColor = s => {
-    const map = { math:"#4f7cff", science:"#38b2ac", english:"#e67e51",
-                  history:"#9b7fe8", work:"#c48b32", personal:"#e879a0" };
-    return map[(s||"").toLowerCase()] || "#c48b32";
+    if (d < 0)   return { label: "Overdue", cls: "over" };
+    if (d === 0) return { label: "Today", cls: "today" };
+    if (d <= 3)  return { label: `${d}d left`, cls: "soon" };
+    return { label: `${d}d left`, cls: "ok" };
   };
 
   const cy  = calDate.getFullYear();
@@ -139,11 +74,10 @@ export default function Dashboard() {
   const hour = today.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-  
-const navItems = [
+  const navItems = [
     { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard",   path: "/dashboard" },
     { id: "tasks",     Icon: CheckSquare,     label: "My Task",     path: "/tasks"     },
-    { id: "calendar",  Icon: Calendar,        label: "Calendar",    path: "/calendar"  },
+    { id: "calendar",  Icon: CalendarIcon,    label: "Calendar",    path: "/calendar"  },
     { id: "analytics", Icon: BarChart2,       label: "Analytics",   path: "/analytics" },
     { id: "timer",     Icon: Timer,           label: "Focus Timer", path: "/timer"     },
   ];
@@ -151,724 +85,349 @@ const navItems = [
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
         :root {
-          --gold:   #c48b32;
-          --gold2:  #e8a93e;
-          --gold-bg: #fdf3e3;
-          --ink:    #18181b;
-          --ink2:   #52525b;
-          --ink3:   #a1a1aa;
-          --bg:     #fafaf9;
-          --card:   #ffffff;
-          --border: #e4e4e7;
-          --red:    #ef4444;
-          --green:  #22c55e;
+          --gold: #c48b32; --gold2: #e8a93e; --gold-light: #fef7ec;
+          --ink: #0f172a; --ink2: #475569; --ink3: #94a3b8;
+          --bg: #f8fafc; --card: #ffffff;
+          --red: #ef4444; --red-light: #fef2f2;
+          --green: #10b981; --green-light: #ecfdf5;
+          --orange: #f59e0b; --orange-light: #fffbeb;
+          --shadow-sm: 0 2px 8px rgba(0,0,0,0.02);
+          --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.04);
+          --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.06);
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); }
-
-        .d-root {
-          font-family: 'Inter', sans-serif;
-          display: flex;
-          min-height: 100vh;
-          background: var(--bg);
-          color: var(--ink);
-        }
+        body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        
+        .premium-root { display: flex; min-height: 100vh; }
 
         /* ── SIDEBAR ── */
-        .d-sidebar {
-          width: 240px;
-          min-height: 100vh;
-          background: var(--card);
-          border-right: 1px solid var(--border);
-          display: flex;
-          flex-direction: column;
-          padding: 24px 16px 20px;
-          position: fixed;
-          top: 0; left: 0; bottom: 0;
+        .p-sidebar {
+          width: 260px; background: var(--card);
+          display: flex; flex-direction: column;
+          padding: 32px 20px 24px; position: fixed;
+          top: 0; left: 0; bottom: 0; z-index: 50;
+          box-shadow: 1px 0 24px rgba(0,0,0,0.02);
         }
+        .p-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; padding-left: 8px; }
+        .p-logo-img { width: 32px; height: 32px; object-fit: contain; }
+        .p-logo-txt { font-family: 'Lora', serif; font-size: 22px; font-weight: 600; color: var(--gold); letter-spacing: -0.5px; }
 
-        .d-logo-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 0 4px;
-          margin-bottom: 36px;
-        }
-       .d-logo-icon {
-  width: 28px;
-  height: 28px;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-        .d-logo-text {
-          font-family: 'Lora', serif;
-          font-size: 20px;
-          font-weight: 600;
-          color: var(--gold);
-        }
-
-        /* Nav */
-        .d-nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-
-        .d-nav-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 14px;
-          border-radius: 14px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #94a3b8;
-          cursor: pointer;
-          background: transparent;
-          border: none;
-          width: 100%;
-          text-align: left;
-          font-family: 'Inter', sans-serif;
-          transition: all 0.2s ease;
-        }
-        .d-nav-item:hover {
-          background: #f5f5f5;
-          color: #1e293b;
-        }
-        .d-nav-item.active {
-          background: white;
-          color: #1e293b;
-          box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-        }
-        .nav-icon {
-          width: 34px; height: 34px;
-          border-radius: 50%;
-          background: #f3f4f6;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-          transition: background 0.2s;
-        }
-        .d-nav-item.active .nav-icon {
-          background: var(--gold);
-          color: white;
-        }
-        .d-nav-item.active .nav-icon svg { color: white; }
-
-        /* Sidebar Footer */
-        .d-sidebar-foot {
-          border-top: 1px solid var(--border);
-          padding-top: 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .d-user-row {
-          display: flex; align-items: center; gap: 10px;
-          padding: 6px 4px;
-        }
-        .d-avatar {
-          width: 34px; height: 34px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, var(--gold), var(--gold2));
-          color: white; font-weight: 700; font-size: 13px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-          font-family: 'Inter', sans-serif;
-        }
-        .d-uname { font-size: 13px; font-weight: 600; color: var(--ink); }
-        .d-urole { font-size: 11px; color: var(--ink3); }
-
-        .d-logout {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          padding: 10px 14px;
-          background: none;
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          color: var(--ink2);
-          font-size: 13.5px;
-          font-family: 'Inter', sans-serif;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
-        .d-logout:hover {
-          border-color: var(--red);
-          color: var(--red);
-          background: #fef2f2;
-        }
-        .d-logout .logout-icon-wrap {
-          width: 28px; height: 28px;
-          border-radius: 6px;
-          background: #f4f4f5;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-          transition: background 0.15s;
-        }
-        .d-logout:hover .logout-icon-wrap { background: #fee2e2; }
-
-        /* ── MAIN ── */
-        .d-main {
-          margin-left: 240px;
-          flex: 1;
-          padding: 40px 40px 60px;
-        }
-        .d-topbar {
-          display: flex; justify-content: space-between;
-          align-items: flex-end; margin-bottom: 36px;
-        }
-        .d-welcome {
-          font-family: 'Lora', serif;
-          font-size: 28px; font-weight: 600;
-          color: var(--ink); line-height: 1.2;
-        }
-        .d-welcome em { font-style: italic; color: var(--gold); }
-        .d-date-str { font-size: 12.5px; color: var(--ink3); margin-top: 5px; }
-        .d-add-btn {
-          display: flex; align-items: center; gap: 7px;
-          padding: 11px 20px;
-          background: var(--gold); color: white;
-          border: none; border-radius: 9px;
-          font-size: 13.5px; font-weight: 600;
-          font-family: 'Inter', sans-serif;
-          cursor: pointer; transition: background 0.15s;
-          white-space: nowrap;
-        }
-        .d-add-btn:hover { background: #a87328; }
-
-        .d-stats {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 14px; margin-bottom: 32px;
-        }
-        .d-stat {
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 20px 22px;
-          position: relative; overflow: hidden;
-          animation: fadeUp 0.4s ease both;
-        }
-        .d-stat:nth-child(1){animation-delay:.05s}
-        .d-stat:nth-child(2){animation-delay:.10s}
-        .d-stat:nth-child(3){animation-delay:.15s}
-        .d-stat:nth-child(4){animation-delay:.20s}
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(12px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        .d-stat-label {
-          font-size: 11px; font-weight: 500;
-          color: var(--ink3); letter-spacing: 0.6px;
-          text-transform: uppercase; margin-bottom: 8px;
-        }
-        .d-stat-val {
-          font-family: 'Lora', serif;
-          font-size: 38px; font-weight: 600; line-height: 1;
-        }
-        .d-stat-sub { font-size: 11.5px; color: var(--ink3); margin-top: 5px; }
-        .d-stat-bar {
-          position: absolute; bottom:0; left:0; right:0;
-          height: 3px; background: var(--border);
-        }
-        .d-stat-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
-
-        .d-grid {
-          display: grid;
-          grid-template-columns: 1fr 296px;
-          gap: 20px; align-items: start;
-        }
-        .d-section-head {
-          display: flex; justify-content: space-between;
-          align-items: center; margin-bottom: 14px;
-        }
-        .d-section-title {
-          font-family: 'Lora', serif;
-          font-size: 18px; font-weight: 600; color: var(--ink);
-        }
-        .d-count-badge {
-          font-size: 11px; font-weight: 600;
-          background: #f4f4f5; color: var(--ink2);
-          padding: 3px 9px; border-radius: 20px;
-        }
-
-        .d-tasks { display: flex; flex-direction: column; gap: 10px; }
-        .d-task {
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 16px 18px;
+        .p-nav { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .p-nav-btn {
           display: flex; align-items: center; gap: 14px;
-          transition: box-shadow 0.15s, transform 0.15s;
-          animation: fadeUp 0.35s ease both;
+          padding: 12px 16px; border-radius: 12px;
+          border: none; background: transparent;
+          font-size: 14.5px; font-weight: 500; color: var(--ink2);
+          cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          text-align: left; font-family: inherit;
         }
-        .d-task:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); transform: translateY(-1px); }
-        .d-task-stripe { width:4px; height:40px; border-radius:4px; flex-shrink:0; }
-        .d-task-body   { flex:1; min-width:0; }
-        .d-task-name {
-          font-size: 14px; font-weight: 600; color: var(--ink);
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          margin-bottom: 4px;
+        .p-nav-btn:hover { background: var(--bg); color: var(--ink); transform: translateX(2px); }
+        .p-nav-btn.active {
+          background: var(--ink); color: white;
+          box-shadow: 0 8px 16px rgba(15, 23, 42, 0.15);
         }
-        .d-task-meta {
-          display: flex; gap: 10px;
-          font-size: 11.5px; color: var(--ink3); flex-wrap: wrap;
-        }
-        .d-pill {
-          font-size: 11px; font-weight: 600;
-          padding: 3px 10px; border-radius: 20px; white-space: nowrap;
-        }
-        .d-dl {
-          font-size: 11.5px; font-weight: 600;
-          padding: 4px 10px; border-radius: 6px; white-space: nowrap;
-        }
-        .d-dl.ok    { background:#f0fdf4; color:#16a34a; }
-        .d-dl.soon  { background:#fffbeb; color:#d97706; }
-        .d-dl.today { background:#fdf3e3; color:var(--gold); }
-        .d-dl.over  { background:#fef2f2; color:var(--red); }
+        .p-nav-icon { opacity: 0.7; transition: opacity 0.25s; }
+        .p-nav-btn.active .p-nav-icon { opacity: 1; color: var(--gold2); }
 
-        .d-empty {
-          background: var(--card);
-          border: 1px dashed var(--border);
-          border-radius: 14px; padding: 56px 24px; text-align: center;
+        .p-user {
+          margin-top: auto; padding: 16px;
+          background: var(--bg); border-radius: 16px;
+          display: flex; flex-direction: column; gap: 16px;
         }
-        .d-empty-icon { font-size: 40px; margin-bottom: 12px; }
-        .d-empty-text { font-size: 15px; font-weight: 500; color: var(--ink2); }
-        .d-empty-sub  { font-size: 13px; color: var(--ink3); margin-top: 4px; }
+        .p-user-info { display: flex; align-items: center; gap: 12px; }
+        .p-avatar {
+          width: 36px; height: 36px; border-radius: 10px;
+          background: linear-gradient(135deg, var(--gold), var(--gold2));
+          color: white; font-weight: 600; display: flex; align-items: center; justify-content: center;
+        }
+        .p-user-name { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+        .p-user-role { font-size: 12px; color: var(--ink3); }
+        .p-logout {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          width: 100%; padding: 10px; border-radius: 10px;
+          border: 1px solid rgba(15, 23, 42, 0.05); background: white;
+          color: var(--ink2); font-size: 13px; font-weight: 500;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .p-logout:hover { color: var(--red); border-color: var(--red-light); background: var(--red-light); }
 
-        .d-right { display: flex; flex-direction: column; gap: 20px; }
+        /* ── MAIN AREA ── */
+        .p-main { margin-left: 260px; flex: 1; padding: 48px 56px 80px; max-width: 1400px; }
+        
+        .p-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .p-greeting { font-family: 'Lora', serif; font-size: 34px; font-weight: 500; color: var(--ink); letter-spacing: -0.5px; margin-bottom: 8px; }
+        .p-greeting em { color: var(--gold); font-style: italic; font-weight: 400; }
+        .p-date { font-size: 14px; color: var(--ink3); font-weight: 400; letter-spacing: 0.2px; }
+        
+        .p-add-btn {
+          display: flex; align-items: center; gap: 8px;
+          padding: 12px 24px; border-radius: 100px;
+          background: var(--ink); color: white; border: none;
+          font-size: 14px; font-weight: 500; cursor: pointer;
+          transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(15,23,42,0.1);
+        }
+        .p-add-btn:hover { transform: translateY(-2px); background: #1e293b; box-shadow: 0 8px 20px rgba(15,23,42,0.2); }
 
-        .d-progress-card {
-          background: var(--card); border: 1px solid var(--border);
-          border-radius: 14px; padding: 22px;
-          animation: fadeUp 0.4s ease 0.25s both;
+        /* ── KPI CARDS ── */
+        .p-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 48px; }
+        .p-kpi {
+          background: var(--card); border-radius: 24px; padding: 24px;
+          position: relative; overflow: hidden;
+          box-shadow: var(--shadow-md); transition: transform 0.3s, box-shadow 0.3s;
+          animation: fadeUp 0.6s ease-out backwards;
         }
-        .d-ring-wrap { display: flex; justify-content: center; margin: 18px 0 14px; }
-        .d-ring-svg  { transform: rotate(-90deg); }
-        .d-ring-track { fill:none; stroke:#f4f4f5; stroke-width:10; }
-        .d-ring-fill  {
-          fill:none; stroke:var(--gold); stroke-width:10;
-          stroke-linecap:round; transition: stroke-dashoffset 1s ease;
-        }
-        .d-ring-num {
-          font-family:'Lora',serif; font-size:22px; font-weight:600;
-          fill:var(--ink); dominant-baseline:middle; text-anchor:middle;
-        }
-        .d-ring-sub2 {
-          font-size:10px; fill:var(--ink3);
-          dominant-baseline:middle; text-anchor:middle;
-        }
-        .d-progress-stats {
-          display: flex; justify-content: space-around;
-          border-top: 1px solid var(--border); padding-top: 14px;
-        }
-        .d-ps      { text-align: center; }
-        .d-ps-val  { font-size: 18px; font-weight: 700; color: var(--ink); }
-        .d-ps-lbl  { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+        .p-kpi:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .p-kpi:nth-child(1) { animation-delay: 0.1s; }
+        .p-kpi:nth-child(2) { animation-delay: 0.2s; }
+        .p-kpi:nth-child(3) { animation-delay: 0.3s; }
+        .p-kpi:nth-child(4) { animation-delay: 0.4s; }
 
-        .d-cal {
-          background: var(--card); border: 1px solid var(--border);
-          border-radius: 14px; padding: 20px;
-          animation: fadeUp 0.4s ease 0.3s both;
-        }
-        .d-cal-head {
-          display: flex; align-items: center;
-          justify-content: space-between; margin-bottom: 14px;
-        }
-        .d-cal-title {
-          font-family: 'Lora', serif;
-          font-size: 15px; font-weight: 600; color: var(--ink);
-        }
-        .d-cal-nav {
-          background: none; border: 1px solid var(--border);
-          border-radius: 6px; width:26px; height:26px;
-          display:flex; align-items:center; justify-content:center;
-          cursor:pointer; font-size:12px; color:var(--ink2); transition:all 0.15s;
-        }
-        .d-cal-nav:hover { background: #f4f4f5; }
-        .d-cal-grid {
-          display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
-        }
-        .d-cal-dayname {
-          text-align:center; font-size:10px; font-weight:600;
-          color:var(--ink3); padding: 4px 0 6px; letter-spacing:0.3px;
-        }
-        .d-cal-day {
-          aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-          font-size:12px; border-radius:6px; color:var(--ink2); position:relative;
-        }
-        .d-cal-day.today-cell {
-          background: var(--gold); color:white;
-          font-weight:700; border-radius:50%;
-        }
-        .d-cal-day.has-deadline::after {
-          content:''; position:absolute; bottom:2px;
-          width:4px; height:4px; border-radius:50%; background:var(--red);
-        }
+        .p-kpi-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .p-kpi-val { font-family: 'Lora', serif; font-size: 42px; font-weight: 500; color: var(--ink); line-height: 1; margin-bottom: 4px; letter-spacing: -1px; }
+        .p-kpi-lbl { font-size: 14px; font-weight: 500; color: var(--ink2); }
+        .p-kpi-bg { position: absolute; right: -20px; bottom: -20px; width: 120px; height: 120px; border-radius: 50%; opacity: 0.4; filter: blur(30px); pointer-events: none; }
 
-        .d-upcoming {
-          background: var(--card); border: 1px solid var(--border);
-          border-radius: 14px; padding: 20px;
-          animation: fadeUp 0.4s ease 0.35s both;
-        }
-        .d-upcoming-list { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
-        .d-uitem { display:flex; align-items:center; gap:10px; }
-        .d-uitem-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-        .d-uitem-name {
-          flex:1; font-size:12.5px; font-weight:500; color:var(--ink);
-          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        }
-        .d-uitem-date { font-size:11px; color:var(--ink3); white-space:nowrap; }
+        /* ── GRID LAYOUT ── */
+        .p-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; align-items: start; }
 
-        /* ── MODAL ── */
-        .d-overlay {
-          position:fixed; inset:0;
-          background:rgba(0,0,0,0.35); backdrop-filter:blur(3px);
-          display:flex; align-items:center; justify-content:center;
-          z-index:200; animation: fadeIn 0.15s ease;
-        }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        .d-modal {
-          background: var(--card); border-radius:18px;
-          padding:32px; width:100%; max-width:460px;
-          box-shadow: 0 24px 64px rgba(0,0,0,0.14);
-          animation: slideUp 0.2s ease;
-        }
-        @keyframes slideUp {
-          from { opacity:0; transform:translateY(20px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        .d-modal-title {
-          font-family:'Lora',serif; font-size:22px;
-          font-weight:600; margin-bottom:6px; color:var(--ink);
-        }
-        .d-modal-sub { font-size:13px; color:var(--ink3); margin-bottom:24px; }
-        .d-mform   { display:flex; flex-direction:column; gap:12px; }
-        .d-mlabel  {
-          display:block; font-size:11.5px; font-weight:600;
-          color:var(--ink2); margin-bottom:5px;
-          letter-spacing:0.3px; text-transform:uppercase;
-        }
-        .d-minput {
-          width:100%; padding:12px 14px;
-          border:1px solid var(--border); border-radius:9px;
-          font-size:13.5px; font-family:'Inter',sans-serif;
-          color:var(--ink); background:var(--bg); outline:none;
-          transition: border 0.15s, box-shadow 0.15s;
-        }
-        .d-minput:focus { border-color:var(--gold); box-shadow:0 0 0 3px #c48b3218; }
-        .d-mrow { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        .d-mactions { display:flex; gap:10px; margin-top:6px; }
-        .d-mbtn-cancel {
-          flex:1; padding:12px;
-          border:1px solid var(--border); border-radius:9px;
-          background:none; color:var(--ink2);
-          font-size:13.5px; font-weight:500;
-          font-family:'Inter',sans-serif; cursor:pointer; transition:all 0.15s;
-        }
-        .d-mbtn-cancel:hover { background:#f4f4f5; }
-        .d-mbtn-save {
-          flex:1; padding:12px; border:none;
-          border-radius:9px; background:var(--gold); color:white;
-          font-size:13.5px; font-weight:600;
-          font-family:'Inter',sans-serif; cursor:pointer; transition:background 0.15s;
-        }
-        .d-mbtn-save:hover    { background:#a87328; }
-        .d-mbtn-save:disabled { opacity:0.6; cursor:not-allowed; }
+        .p-section-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 500; color: var(--ink); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .p-badge { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--bg); color: var(--ink3); }
 
-        /* Task action buttons */
-        .d-task-btn {
-          padding: 5px 10px;
-          font-size: 11.5px; font-weight: 500;
-          font-family: 'Inter', sans-serif;
-          border: none; border-radius: 6px;
-          cursor: pointer; transition: opacity 0.15s;
-          white-space: nowrap;
+        /* ── TASK LIST ── */
+        .p-task-list { display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.6s ease-out 0.3s backwards; }
+        .p-task {
+          background: var(--card); border-radius: 16px; padding: 18px 24px;
+          display: flex; align-items: center; gap: 16px;
+          box-shadow: var(--shadow-sm); transition: all 0.25s ease; border: 1px solid transparent;
         }
-        .d-task-btn:hover { opacity: 0.85; }
-        .d-task-btn-toggle-done { background: #dcfce7; color: #16a34a; }
-        .d-task-btn-toggle-undo { background: #fef9c3; color: #a16207; }
-        .d-task-btn-delete      { background: #fee2e2; color: #dc2626; }
+        .p-task:hover { box-shadow: var(--shadow-md); border-color: rgba(15,23,42,0.05); transform: scale(1.005); }
+        .p-task.completed { opacity: 0.6; }
+        
+        .p-task-check {
+          color: var(--ink3); cursor: pointer; transition: color 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .p-task-check:hover { color: var(--gold); }
+        .p-task.completed .p-task-check { color: var(--green); }
+        
+        .p-task-content { flex: 1; min-width: 0; }
+        .p-task-name { font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .p-task.completed .p-task-name { text-decoration: line-through; color: var(--ink2); }
+        .p-task-meta { display: flex; gap: 16px; font-size: 12px; color: var(--ink3); }
+        .p-task-meta span { display: flex; align-items: center; gap: 4px; }
+        
+        .p-task-dl { font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 8px; }
+        .p-task-dl.ok { background: var(--bg); color: var(--ink2); }
+        .p-task-dl.soon { background: var(--orange-light); color: #d97706; }
+        .p-task-dl.today { background: var(--gold-light); color: var(--gold); }
+        .p-task-dl.over { background: var(--red-light); color: var(--red); }
+
+        .p-task-action { opacity: 0; transform: translateX(10px); transition: all 0.2s; font-size: 12px; font-weight: 500; color: var(--gold); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px; background: var(--gold-light); border: none; }
+        .p-task:hover .p-task-action { opacity: 1; transform: translateX(0); }
+
+        /* ── RIGHT COLUMN ── */
+        .p-right { display: flex; flex-direction: column; gap: 32px; animation: fadeUp 0.6s ease-out 0.4s backwards; }
+
+        .p-progress { background: var(--card); border-radius: 24px; padding: 32px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+        .p-prog-circle { display: flex; justify-content: center; margin: 10px 0 32px; position: relative; }
+        .p-prog-svg { transform: rotate(-90deg); filter: drop-shadow(0 4px 12px rgba(196, 139, 50, 0.2)); }
+        .p-prog-track { fill: none; stroke: var(--bg); stroke-width: 12; }
+        .p-prog-fill { fill: none; stroke: url(#gold-grad); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .p-prog-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .p-prog-val { font-family: 'Lora', serif; font-size: 36px; font-weight: 500; color: var(--ink); line-height: 1; }
+        .p-prog-lbl { font-size: 12px; color: var(--ink3); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+
+        .p-cal { background: var(--card); border-radius: 24px; padding: 28px; box-shadow: var(--shadow-md); }
+        .p-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .p-cal-title { font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; color: var(--ink); }
+        .p-cal-nav { display: flex; gap: 8px; }
+        .p-cal-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--bg); background: white; color: var(--ink2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .p-cal-btn:hover { background: var(--bg); color: var(--ink); }
+        .p-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .p-cal-dname { text-align: center; font-size: 11px; font-weight: 500; color: var(--ink3); margin-bottom: 8px; }
+        .p-cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink); border-radius: 10px; cursor: default; position: relative; transition: all 0.2s; }
+        .p-cal-day:hover { background: var(--bg); }
+        .p-cal-day.today { background: var(--ink); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.2); }
+        .p-cal-day.has-dl::after { content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
+        .p-cal-day.today.has-dl::after { background: white; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         @media(max-width:1024px){
-          .d-stats { grid-template-columns:repeat(2,1fr); }
-          .d-grid  { grid-template-columns:1fr; }
+          .p-kpis { grid-template-columns: repeat(2, 1fr); }
+          .p-grid { grid-template-columns: 1fr; }
         }
         @media(max-width:720px){
-          .d-sidebar { display:none; }
-          .d-main    { margin-left:0; padding:24px 16px; }
+          .p-sidebar { display: none; }
+          .p-main { margin-left: 0; padding: 32px 24px; }
         }
       `}</style>
 
-      <div className="d-root">
-        {/* ── SIDEBAR ── */}
-        <aside className="d-sidebar">
-          <div className="d-logo-row">
-            <div className="d-logo-icon">
-  <img src={logo1} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-</div>
-            <span className="d-logo-text">TimeMap</span>
+      <div className="premium-root">
+        
+        <aside className="p-sidebar">
+          <div className="p-logo">
+            <img src={logo1} alt="Logo" className="p-logo-img" />
+            <span className="p-logo-txt">TimeMap</span>
           </div>
-
-          <nav className="d-nav">
-           
-{navItems.map(({ id, Icon, label, path }) => (
-  <button
-    key={id}
-    className={`d-nav-item ${activeNav === id ? "active" : ""}`}
-    onClick={() => { setActiveNav(id); navigate(path); }}
-  >
-                <span className="nav-icon">
-                  <Icon size={16} strokeWidth={2} />
-                </span>
+          <nav className="p-nav">
+            {navItems.map(({ id, Icon, label, path }) => (
+              <button key={id} className={`p-nav-btn ${id === "dashboard" ? "active" : ""}`} onClick={() => navigate(path)}>
+                <Icon size={18} strokeWidth={2} className="p-nav-icon" />
                 {label}
               </button>
             ))}
           </nav>
-
-          <div className="d-sidebar-foot">
-            <div className="d-user-row">
-              <div className="d-avatar">{username[0].toUpperCase()}</div>
+          <div className="p-user">
+            <div className="p-user-info">
+              <div className="p-avatar">{username[0].toUpperCase()}</div>
               <div>
-                <div className="d-uname">{username}</div>
-                <div className="d-urole">Student</div>
+                <div className="p-user-name">{username}</div>
+                <div className="p-user-role">Student</div>
               </div>
             </div>
-            {/* ── FIX: LogOut is now properly imported from lucide-react ── */}
-            <button className="d-logout" onClick={handleLogout}>
-              <span className="logout-icon-wrap">
-                <LogOut size={14} strokeWidth={2} />
-              </span>
-              Sign out
+            <button className="p-logout" onClick={() => { localStorage.clear(); navigate("/login"); }}>
+              <LogOut size={14} /> Sign out
             </button>
           </div>
         </aside>
 
-        {/* ── MAIN ── */}
-        <main className="d-main">
-          <div className="d-topbar">
+        <main className="p-main">
+          <header className="p-header">
             <div>
-              <h1 className="d-welcome">{greeting}, <em>{username}</em> :)</h1>
-              <p className="d-date-str">
-                {today.toLocaleDateString("en-US",{ weekday:"long", year:"numeric", month:"long", day:"numeric" })}
-              </p>
+              <h1 className="p-greeting">{greeting}, <em>{username}</em></h1>
+              <p className="p-date">{today.toLocaleDateString("en-US",{ weekday:"long", year:"numeric", month:"long", day:"numeric" })}</p>
             </div>
-            <button className="d-add-btn" onClick={() => setShowModal(true)}>
-              ＋&nbsp; New Task
+            <button className="p-add-btn" onClick={() => navigate('/tasks')}>
+              <Plus size={18} strokeWidth={2.5} /> New Task
             </button>
+          </header>
+
+          <div className="p-kpis">
+            <div className="p-kpi">
+              <div className="p-kpi-bg" style={{ background: 'var(--ink)' }} />
+              <div className="p-kpi-icon" style={{ background: 'var(--bg)', color: 'var(--ink)' }}><CheckSquare size={20} /></div>
+              <div className="p-kpi-val">{total}</div>
+              <div className="p-kpi-lbl">Total Tasks</div>
+            </div>
+            <div className="p-kpi">
+              <div className="p-kpi-bg" style={{ background: 'var(--orange)' }} />
+              <div className="p-kpi-icon" style={{ background: 'var(--orange-light)', color: 'var(--orange)' }}><Clock size={20} /></div>
+              <div className="p-kpi-val">{pending}</div>
+              <div className="p-kpi-lbl">Pending</div>
+            </div>
+            <div className="p-kpi">
+              <div className="p-kpi-bg" style={{ background: 'var(--green)' }} />
+              <div className="p-kpi-icon" style={{ background: 'var(--green-light)', color: 'var(--green)' }}><Check size={20} /></div>
+              <div className="p-kpi-val">{completed}</div>
+              <div className="p-kpi-lbl">Completed</div>
+            </div>
+            <div className="p-kpi">
+              <div className="p-kpi-bg" style={{ background: 'var(--red)' }} />
+              <div className="p-kpi-icon" style={{ background: 'var(--red-light)', color: 'var(--red)' }}><AlertTriangle size={20} /></div>
+              <div className="p-kpi-val">{overdue}</div>
+              <div className="p-kpi-lbl">Overdue</div>
+            </div>
           </div>
 
-          <div className="d-stats">
-            {[
-              { label:"Total Tasks",  val:total,     sub:"All subjects",    color:"#c48b32", pct:100 },
-              { label:"Pending",      val:pending,   sub:"To study",        color:"#f59e0b", pct: total?(pending/total)*100:0 },
-              { label:"Completed",    val:completed, sub:"Well done!",      color:"#ca9231", pct: total?(completed/total)*100:0 },
-              { label:"Overdue",      val:overdue,   sub:"Needs attention", color:"#e5b71f", pct: total?(overdue/total)*100:0 },
-            ].map(s => (
-              <div className="d-stat" key={s.label}>
-                <div className="d-stat-label">{s.label}</div>
-                <div className="d-stat-val" style={{ color:s.color }}>{s.val}</div>
-                <div className="d-stat-sub">{s.sub}</div>
-                <div className="d-stat-bar">
-                  <div className="d-stat-bar-fill" style={{ width:`${s.pct}%`, background:s.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="d-grid">
-            <div>
-              <div className="d-section-head">
-                <h2 className="d-section-title">Study Tasks</h2>
-                <span className="d-count-badge">{total} tasks</span>
-              </div>
+          <div className="p-grid">
+            
+            <div className="p-tasks-sec">
+              <h2 className="p-section-title">
+                Recent Tasks <span className="p-badge">{pending} left</span>
+              </h2>
+              
               {tasks.length === 0 ? (
-                <div className="d-empty">
-                  <div className="d-empty-icon">📋</div>
-                  <div className="d-empty-text">No tasks yet</div>
-                  <div className="d-empty-sub">Add your first study task to get started</div>
+                <div style={{ padding: '60px 20px', textAlign: 'center', background: 'var(--card)', borderRadius: '24px', border: '1px dashed var(--ink3)' }}>
+                  <p style={{ color: 'var(--ink2)', fontWeight: 500 }}>No tasks found. Time to relax!</p>
                 </div>
               ) : (
-                <div className="d-tasks">
-                  {tasks.map((t, i) => {
-                    const dl  = daysLeft(t.deadline);
-                    const col = subjectColor(t.subject_category);
+                <div className="p-task-list">
+                  {tasks.sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).map((t) => {
+                    const dl = daysLeft(t.deadline);
+                    const isDone = t.status === "Completed";
                     return (
-                      <div className="d-task" key={t.id} style={{ animationDelay:`${i*0.05}s` }}>
-                        <div className="d-task-stripe" style={{ background:col }} />
-                        <div className="d-task-body">
-                          <div className="d-task-name">{t.task_name}</div>
-                          <div className="d-task-meta">
-                            <span>📁 {t.subject_category || "General"}</span>
-                            <span>📅 {t.deadline}</span>
-                            <span>⚡ {calculateRisk(t)} risk</span>
+                      <div className={`p-task ${isDone ? 'completed' : ''}`} key={t.id}>
+                        <div className="p-task-check" onClick={() => updateStatus(t.id, isDone ? "Pending" : "Completed")}>
+                          {isDone ? <CheckCircle2 size={24} strokeWidth={1.5} /> : <Circle size={24} strokeWidth={1.5} />}
+                        </div>
+                        <div className="p-task-content">
+                          <div className="p-task-name">{t.task_name}</div>
+                          <div className="p-task-meta">
+                            <span><CalendarIcon size={12}/> {t.deadline}</span>
+                            <span>{t.subject_category || "General"}</span>
                           </div>
                         </div>
-                        <div style={{ display:"flex", alignItems:"center", gap:"6px" }}>
-                          <span className="d-pill" style={{
-                            background: t.status === "Completed" ? "#f0fdf4" : "#fdf3e3",
-                            color:      t.status === "Completed" ? "#16a34a" : "#c48b32",
-                          }}>
-                            {t.status}
-                          </span>
-                          <button
-                            className={`d-task-btn ${t.status === "Completed" ? "d-task-btn-toggle-undo" : "d-task-btn-toggle-done"}`}
-                            onClick={() => updateStatus(t.id, t.status === "Completed" ? "Pending" : "Completed")}
-                            title={t.status === "Completed" ? "Mark as Pending" : "Mark as Completed"}
-                          >
-                            {t.status === "Completed" ? "Undo" : "Done"}
+                        <span className={`p-task-dl ${dl.cls}`}>{dl.label}</span>
+                        {!isDone && (
+                          <button className="p-task-action" onClick={() => navigate(`/tasks/${t.id}`)}>
+                            View <ArrowRight size={14} />
                           </button>
-                          <button
-                            className="d-task-btn d-task-btn-delete"
-                            onClick={() => deleteTask(t.id)}
-                            title="Delete task"
-                          >
-                            Delete
-                          </button>
-                          <span className={`d-dl ${dl.cls}`}>{dl.label}</span>
-                        </div>
+                        )}
                       </div>
-                    );
+                    )
                   })}
                 </div>
               )}
             </div>
 
-            <div className="d-right">
-              <div className="d-progress-card">
-                <div className="d-section-head" style={{ marginBottom:0 }}>
-                  <h2 className="d-section-title">Progress</h2>
-                  <span className="d-count-badge">{pct}%</span>
-                </div>
-                <div className="d-ring-wrap">
-                  {(() => {
-                    const r = 52, circ = 2*Math.PI*r, offset = circ-(pct/100)*circ;
-                    return (
-                      <svg width="130" height="130" viewBox="0 0 130 130" className="d-ring-svg">
-                        <circle className="d-ring-track" cx="65" cy="65" r={r}/>
-                        <circle className="d-ring-fill"  cx="65" cy="65" r={r}
-                          strokeDasharray={circ} strokeDashoffset={offset}/>
-                        <text x="65" y="61" className="d-ring-num"  transform="rotate(90 65 65)">{pct}%</text>
-                        <text x="65" y="76" className="d-ring-sub2" transform="rotate(90 65 65)">complete</text>
-                      </svg>
-                    );
-                  })()}
-                </div>
-                <div className="d-progress-stats">
-                  <div className="d-ps"><div className="d-ps-val" style={{color:"#22c55e"}}>{completed}</div><div className="d-ps-lbl">Done</div></div>
-                  <div className="d-ps"><div className="d-ps-val" style={{color:"#f59e0b"}}>{pending}</div><div className="d-ps-lbl">Pending</div></div>
-                  <div className="d-ps"><div className="d-ps-val" style={{color:"#ef4444"}}>{overdue}</div><div className="d-ps-lbl">Overdue</div></div>
+            <div className="p-right">
+              <div className="p-progress">
+                <h2 className="p-section-title" style={{ marginBottom: 0 }}>Overview</h2>
+                <div className="p-prog-circle">
+                  <svg width="180" height="180" viewBox="0 0 180 180" className="p-prog-svg">
+                    <defs>
+                      <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="var(--gold2)" />
+                        <stop offset="100%" stopColor="var(--gold)" />
+                      </linearGradient>
+                    </defs>
+                    <circle className="p-prog-track" cx="90" cy="90" r="76" />
+                    <circle className="p-prog-fill" cx="90" cy="90" r="76" 
+                      strokeDasharray={2 * Math.PI * 76} 
+                      strokeDashoffset={(2 * Math.PI * 76) * (1 - pct / 100)} 
+                    />
+                  </svg>
+                  <div className="p-prog-txt">
+                    <span className="p-prog-val">{pct}%</span>
+                    <span className="p-prog-lbl">Done</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="d-cal">
-                <div className="d-cal-head">
-                  <button className="d-cal-nav" onClick={() => setCalDate(new Date(cy, cm-1))}>‹</button>
-                  <span className="d-cal-title">{MONTHS[cm]} {cy}</span>
-                  <button className="d-cal-nav" onClick={() => setCalDate(new Date(cy, cm+1))}>›</button>
+              <div className="p-cal">
+                <div className="p-cal-head">
+                  <div className="p-cal-title">{MONTHS[cm]} {cy}</div>
+                  <div className="p-cal-nav">
+                    <button className="p-cal-btn" onClick={() => setCalDate(new Date(cy, cm-1))}>‹</button>
+                    <button className="p-cal-btn" onClick={() => setCalDate(new Date(cy, cm+1))}>›</button>
+                  </div>
                 </div>
-                <div className="d-cal-grid">
-                  {DAYS.map(d => <div className="d-cal-dayname" key={d}>{d}</div>)}
-                  {Array.from({length:fd}).map((_,i) => <div key={`e${i}`} className="d-cal-day"/>)}
+                <div className="p-cal-grid">
+                  {DAYS.map(d => <div className="p-cal-dname" key={d}>{d}</div>)}
+                  {Array.from({length:fd}).map((_,i) => <div key={`e${i}`}/>)}
                   {Array.from({length:dim}).map((_,i) => {
                     const day = i+1;
                     const isToday = cy===today.getFullYear() && cm===today.getMonth() && day===today.getDate();
                     const hasDl   = deadlineDays.has(day);
                     return (
-                      <div key={day} className={`d-cal-day ${isToday?"today-cell":""} ${hasDl&&!isToday?"has-deadline":""}`}>
+                      <div key={day} className={`p-cal-day ${isToday?'today':''} ${hasDl?'has-dl':''}`}>
                         {day}
                       </div>
                     );
                   })}
                 </div>
               </div>
-
-              <div className="d-upcoming">
-                <h2 className="d-section-title">Upcoming Deadlines</h2>
-                <div className="d-upcoming-list">
-                  {tasks
-                    .filter(t => new Date(t.deadline) >= today && t.status !== "Completed")
-                    .sort((a,b) => new Date(a.deadline)-new Date(b.deadline))
-                    .slice(0,5)
-                    .map(t => (
-                      <div className="d-uitem" key={t.id}>
-                        <div className="d-uitem-dot" style={{ background:subjectColor(t.subject_category) }}/>
-                        <div className="d-uitem-name">{t.task_name}</div>
-                        <div className="d-uitem-date">{t.deadline}</div>
-                      </div>
-                    ))
-                  }
-                  {tasks.filter(t => new Date(t.deadline) >= today && t.status !== "Completed").length === 0 && (
-                    <p style={{fontSize:"12.5px", color:"#2d2f32"}}>
-  No upcoming deadlines 🎉
-</p>
-                  )}
-                </div>
-              </div>
             </div>
+            
           </div>
         </main>
       </div>
-
-      {/* ── MODAL — FIX: replaced <form> with <div>, button uses onClick ── */}
-      {showModal && (
-        <div className="d-overlay" onClick={() => setShowModal(false)}>
-          <div className="d-modal" onClick={e => e.stopPropagation()}>
-            <h2 className="d-modal-title">Add Study Task</h2>
-            <p className="d-modal-sub">Fill in the details for your new task</p>
-            <div className="d-mform">
-              <div>
-                <label className="d-mlabel">Task Name *</label>
-                <input className="d-minput" name="task_name" placeholder="e.g. Chapter 5 revision"
-                  value={form.task_name} onChange={handleChange}/>
-              </div>
-              <div>
-                <label className="d-mlabel">Subject / Category</label>
-                <input className="d-minput" name="subject_category" placeholder="e.g. Math, Science, English"
-                  value={form.subject_category} onChange={handleChange}/>
-              </div>
-              <div className="d-mrow">
-                <div>
-                  <label className="d-mlabel">Difficulty</label>
-                  <select className="d-minput" name="difficulty_level"
-                    value={form.difficulty_level} onChange={handleChange}>
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="d-mlabel">Est. Hours</label>
-                  <input className="d-minput" name="estimated_hours" type="number"
-                    placeholder="e.g. 2" value={form.estimated_hours} onChange={handleChange}/>
-                </div>
-              </div>
-              <div>
-                <label className="d-mlabel">Deadline *</label>
-                <input className="d-minput" name="deadline" type="date"
-                  value={form.deadline} onChange={handleChange}/>
-              </div>
-              <div className="d-mactions">
-                <button type="button" className="d-mbtn-cancel" onClick={() => setShowModal(false)}>
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="d-mbtn-save"
-                  disabled={saving}
-                  onClick={handleAddTask}
-                >
-                  {saving ? "Saving…" : "Add Task"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -13,19 +13,33 @@ export default function MyTask() {
   const userId   = localStorage.getItem("user_id");
 
   const [tasks,      setTasks]      = useState([]);
+  const [categories, setCategories] = useState([]);
   const [search,     setSearch]     = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [showModal,  setShowModal]  = useState(false);
+  const [showCatModal, setShowCatModal] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [savingCat,  setSavingCat]  = useState(false);
   const [saving,     setSaving]     = useState(false);
   const [form, setForm] = useState({
-    task_name: "", subject_category: "",
+    task_name: "", description: "", category_id: "",
     difficulty_level: "Medium", estimated_hours: "", deadline: "",
   });
 
   useEffect(() => {
     if (!userId) { navigate("/login"); return; }
     fetchTasks();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const r = await fetch(`http://localhost:5000/api/categories/${userId}`);
+      if (!r.ok) return;
+      const d = await r.json();
+      setCategories(d.categories || []);
+    } catch (e) { console.error(e); }
+  };
 
   const fetchTasks = async () => {
     try {
@@ -57,7 +71,7 @@ export default function MyTask() {
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleAddTask = async () => {
-    if (!form.task_name || !form.deadline) return;
+    if (!form.task_name || !form.deadline || !form.category_id) return;
     setSaving(true);
     try {
       const r = await fetch("http://localhost:5000/api/tasks", {
@@ -66,12 +80,33 @@ export default function MyTask() {
         body: JSON.stringify({ ...form, user_id: parseInt(userId), status: "Pending" }),
       });
       if (r.ok) {
-        setForm({ task_name:"", subject_category:"", difficulty_level:"Medium", estimated_hours:"", deadline:"" });
+        const data = await r.json();
+        setForm({ task_name:"", description:"", category_id:"", difficulty_level:"Medium", estimated_hours:"", deadline:"" });
         setShowModal(false);
-        fetchTasks();
+        navigate(`/tasks/${data.task_id}`);
       }
     } catch(e) { console.error(e); }
     setSaving(false);
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCatName.trim()) return;
+    setSavingCat(true);
+    try {
+      const r = await fetch("http://localhost:5000/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: parseInt(userId), name: newCatName.trim() }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        await fetchCategories();
+        setForm(prev => ({ ...prev, category_id: d.category_id }));
+        setShowCatModal(false);
+        setNewCatName("");
+      }
+    } catch (e) { console.error(e); }
+    setSavingCat(false);
   };
 
   const handleLogout = () => {
@@ -325,7 +360,7 @@ export default function MyTask() {
                 const dl  = daysLeft(t.deadline);
                 const col = subjectColor(t.subject_category);
                 return (
-                  <div className="mt-task" key={t.id} style={{ animationDelay:`${i*0.04}s` }}>
+                  <div className="mt-task" key={t.id} style={{ animationDelay:`${i*0.04}s`, cursor: 'pointer' }} onClick={() => navigate(`/tasks/${t.id}`)}>
                     
                     <div className="mt-body">
                       <div className="mt-name">{t.task_name}</div>
@@ -336,7 +371,7 @@ export default function MyTask() {
                         
                       </div>
                     </div>
-                    <div className="mt-actions">
+                    <div className="mt-actions" onClick={e => e.stopPropagation()}>
                       <span className="d-pill" style={{
                         background: t.status === "Completed" ? "#f0fdf4" : "#fdf3e3",
                         color:      t.status === "Completed" ? "#16a34a" : "#c48b32",
@@ -378,9 +413,27 @@ export default function MyTask() {
                   value={form.task_name} onChange={handleChange}/>
               </div>
               <div>
-                <label className="d-mlabel">Subject / Category</label>
-                <input className="d-minput" name="subject_category" placeholder="e.g. Math, Science"
-                  value={form.subject_category} onChange={handleChange}/>
+                <label className="d-mlabel">Description</label>
+                <textarea className="d-minput" name="description" placeholder="Any extra details..."
+                  value={form.description} onChange={handleChange} rows={2} style={{ resize: 'vertical' }} />
+              </div>
+              <div>
+                <label className="d-mlabel">Subject / Category *</label>
+                {categories.length === 0 ? (
+                  <button type="button" className="d-mbtn-cancel" style={{ width: '100%', textAlign: 'center', padding: '11px', borderStyle: 'dashed' }} onClick={() => setShowCatModal(true)}>
+                    + Add Category
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <select className="d-minput" name="category_id" value={form.category_id} onChange={handleChange}>
+                      <option value="">Select a category...</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    <button type="button" className="d-mbtn-cancel" style={{ padding: '0 14px', flexShrink: 0 }} onClick={() => setShowCatModal(true)}>
+                      +
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="d-mrow">
                 <div>
@@ -405,8 +458,30 @@ export default function MyTask() {
               </div>
               <div className="d-mactions">
                 <button type="button" className="d-mbtn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="button" className="d-mbtn-save" disabled={saving} onClick={handleAddTask}>
+                <button type="button" className="d-mbtn-save" disabled={saving || !form.category_id} onClick={handleAddTask}>
                   {saving ? "Saving…" : "Add Task"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CATEGORY MODAL ── */}
+      {showCatModal && (
+        <div className="d-overlay" onClick={() => setShowCatModal(false)} style={{ zIndex: 300 }}>
+          <div className="d-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <h2 className="d-modal-title">New Category</h2>
+            <div className="d-mform" style={{ marginTop: '20px' }}>
+              <div>
+                <label className="d-mlabel">Category Name *</label>
+                <input className="d-minput" placeholder="e.g. Math, Science"
+                  value={newCatName} onChange={e => setNewCatName(e.target.value)} autoFocus/>
+              </div>
+              <div className="d-mactions">
+                <button type="button" className="d-mbtn-cancel" onClick={() => setShowCatModal(false)}>Cancel</button>
+                <button type="button" className="d-mbtn-save" disabled={!newCatName.trim() || savingCat} onClick={handleAddCategory}>
+                  {savingCat ? "Saving…" : "Save"}
                 </button>
               </div>
             </div>

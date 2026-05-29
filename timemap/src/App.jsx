@@ -11,6 +11,9 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
 
+import TaskDetail from "./pages/TaskDetail";
+import Analytics from "./pages/Analytics";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -21,6 +24,8 @@ export default function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tasks"     element={<MyTask />} /> 
+        <Route path="/tasks/:id" element={<TaskDetail />} /> 
+        <Route path="/analytics" element={<Analytics />} /> 
        <Route path="/timer" element={<FocusTimer />} />
        <Route path="/calendar" element={<Calendar />} />
        <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import db, User, Task, TimeLog
+from models import db, User, Task, TimeLog, Category
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -9,7 +9,8 @@ import random
 from datetime import timedelta
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///timemap.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'timemap.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 CORS(app)
 db.init_app(app)
@@ -55,6 +56,21 @@ def login():
     return jsonify({'user_id': user.id, 'username': user.username}), 200
 
 
+# ✅ CREATE CATEGORY
+@app.route('/api/categories', methods=['POST'])
+def create_category():
+    data = request.json
+    cat = Category(user_id=data['user_id'], name=data['name'])
+    db.session.add(cat)
+    db.session.commit()
+    return jsonify({'category_id': cat.id}), 201
+
+# ✅ GET CATEGORIES
+@app.route('/api/categories/<int:user_id>', methods=['GET'])
+def get_categories(user_id):
+    cats = Category.query.filter_by(user_id=user_id).all()
+    return jsonify({'categories': [{'id': c.id, 'name': c.name} for c in cats]})
+
 # ✅ CREATE TASK
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
@@ -63,7 +79,8 @@ def create_task():
     task = Task(
         user_id=data['user_id'],
         task_name=data['task_name'],
-        subject_category=data['subject_category'],
+        description=data.get('description', ''),
+        category_id=data['category_id'],
         difficulty_level=data['difficulty_level'],
         estimated_hours=data['estimated_hours'],
         deadline=datetime.strptime(data['deadline'], '%Y-%m-%d'),
@@ -86,12 +103,34 @@ def get_tasks(user_id):
         {
             'id': t.id,
             'task_name': t.task_name,
+            'description': t.description,
+            'subject_category': Category.query.get(t.category_id).name if t.category_id and Category.query.get(t.category_id) else None,
             'deadline': t.deadline.strftime('%Y-%m-%d'),
             'status': t.status,
             'risk': t.ml_risk_prediction
         } for t in tasks
     ]})
 
+
+# ✅ GET TASK
+@app.route('/api/task/<int:task_id>', methods=['GET'])
+def get_task(task_id):
+    task = Task.query.get(task_id)
+
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    return jsonify({'task': {
+        'id': task.id,
+        'task_name': task.task_name,
+        'description': task.description,
+        'subject_category': Category.query.get(task.category_id).name if task.category_id and Category.query.get(task.category_id) else None,
+        'difficulty_level': task.difficulty_level,
+        'estimated_hours': task.estimated_hours,
+        'deadline': task.deadline.strftime('%Y-%m-%d'),
+        'status': task.status,
+        'risk': task.ml_risk_prediction
+    }})
 
 # ✅ DELETE TASK
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
