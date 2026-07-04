@@ -15,8 +15,6 @@ from .signals import appcontext_popped
 from .signals import appcontext_pushed
 
 if t.TYPE_CHECKING:  # pragma: no cover
-    from _typeshed.wsgi import WSGIEnvironment
-
     from .app import Flask
     from .sessions import SessionMixin
     from .wrappers import Request
@@ -114,9 +112,7 @@ class _AppCtxGlobals:
         return object.__repr__(self)
 
 
-def after_this_request(
-    f: ft.AfterRequestCallable[t.Any],
-) -> ft.AfterRequestCallable[t.Any]:
+def after_this_request(f: ft.AfterRequestCallable) -> ft.AfterRequestCallable:
     """Executes a function after this request.  This is useful to modify
     response objects.  The function is passed the response object and has
     to return the same or a new one.
@@ -149,10 +145,7 @@ def after_this_request(
     return f
 
 
-F = t.TypeVar("F", bound=t.Callable[..., t.Any])
-
-
-def copy_current_request_context(f: F) -> F:
+def copy_current_request_context(f: t.Callable) -> t.Callable:
     """A helper function that decorates a function to retain the current
     request context.  This is useful when working with greenlets.  The moment
     the function is decorated a copy of the request context is created and
@@ -186,11 +179,11 @@ def copy_current_request_context(f: F) -> F:
 
     ctx = ctx.copy()
 
-    def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
+    def wrapper(*args, **kwargs):
         with ctx:
             return ctx.app.ensure_sync(f)(*args, **kwargs)
 
-    return update_wrapper(wrapper, f)  # type: ignore[return-value]
+    return update_wrapper(wrapper, f)
 
 
 def has_request_context() -> bool:
@@ -246,7 +239,7 @@ class AppContext:
         self.app = app
         self.url_adapter = app.create_url_adapter(None)
         self.g: _AppCtxGlobals = app.app_ctx_globals_class()
-        self._cv_tokens: list[contextvars.Token[AppContext]] = []
+        self._cv_tokens: list[contextvars.Token] = []
 
     def push(self) -> None:
         """Binds the app context to the current context."""
@@ -309,7 +302,7 @@ class RequestContext:
     def __init__(
         self,
         app: Flask,
-        environ: WSGIEnvironment,
+        environ: dict,
         request: Request | None = None,
         session: SessionMixin | None = None,
     ) -> None:
@@ -324,15 +317,13 @@ class RequestContext:
         except HTTPException as e:
             self.request.routing_exception = e
         self.flashes: list[tuple[str, str]] | None = None
-        self._session: SessionMixin | None = session
+        self.session: SessionMixin | None = session
         # Functions that should be executed after the request on the response
         # object.  These will be called before the regular "after_request"
         # functions.
-        self._after_request_functions: list[ft.AfterRequestCallable[t.Any]] = []
+        self._after_request_functions: list[ft.AfterRequestCallable] = []
 
-        self._cv_tokens: list[
-            tuple[contextvars.Token[RequestContext], AppContext | None]
-        ] = []
+        self._cv_tokens: list[tuple[contextvars.Token, AppContext | None]] = []
 
     def copy(self) -> RequestContext:
         """Creates a copy of this request context with the same request object.
@@ -351,7 +342,7 @@ class RequestContext:
             self.app,
             environ=self.request.environ,
             request=self.request,
-            session=self._session,
+            session=self.session,
         )
 
     def match_request(self) -> None:
@@ -363,16 +354,6 @@ class RequestContext:
             self.request.url_rule, self.request.view_args = result  # type: ignore
         except HTTPException as e:
             self.request.routing_exception = e
-
-    @property
-    def session(self) -> SessionMixin:
-        """The session data associated with this request. Not available until
-        this context has been pushed. Accessing this property, also accessed by
-        the :data:`~flask.session` proxy, sets :attr:`.SessionMixin.accessed`.
-        """
-        assert self._session is not None, "The session has not yet been opened."
-        self._session.accessed = True
-        return self._session
 
     def push(self) -> None:
         # Before we push the request context we have to ensure that there
@@ -391,12 +372,12 @@ class RequestContext:
         # This allows a custom open_session method to use the request context.
         # Only open a new session if this is the first time the request was
         # pushed, otherwise stream_with_context loses the session.
-        if self._session is None:
+        if self.session is None:
             session_interface = self.app.session_interface
-            self._session = session_interface.open_session(self.app, self.request)
+            self.session = session_interface.open_session(self.app, self.request)
 
-            if self._session is None:
-                self._session = session_interface.make_null_session(self.app)
+            if self.session is None:
+                self.session = session_interface.make_null_session(self.app)
 
         # Match the request URL after loading the session, so that the
         # session is available in custom URL converters.

@@ -3,6 +3,7 @@ from flask_cors import CORS
 from models import db, User, Task, TimeLog, Category
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from trained_model.predict import predict_risk_from_task
 import os
 import secrets
 import random
@@ -17,6 +18,41 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+
+# ---- ML risk helpers ----
+
+def calculate_completion_percentage(user_id, task_id, estimated_hours):
+    """Derives completion % from logged TimeLog minutes vs estimated hours."""
+    logs = TimeLog.query.filter_by(user_id=user_id, task_id=task_id).all()
+    total_minutes = sum(log.duration_minutes for log in logs)
+    total_hours = total_minutes / 60
+
+    if estimated_hours <= 0:
+        return 0.0
+
+    percentage = (total_hours / estimated_hours) * 100
+    return min(percentage, 100.0)
+
+
+def calculate_task_risk(task):
+    """Recalculates a task's risk level right now, based on current time + logged progress."""
+    completion = calculate_completion_percentage(task.user_id, task.id, task.estimated_hours)
+
+    try:
+        result = predict_risk_from_task(
+            estimated_hours=task.estimated_hours,
+            deadline=task.deadline,
+            difficulty_level=task.difficulty_level,
+            completion_percentage=completion,
+        )
+        return result['risk_level']
+    except Exception as e:
+        # If the model fails for any reason, don't crash the request —
+        # fall back to whatever was last stored (or 'Medium' if nothing yet)
+        print(f"Risk prediction failed for task {task.id}: {e}")
+        return task.ml_risk_prediction or 'Medium'
+
 
 @app.route('/')
 def home():
@@ -46,7 +82,6 @@ def login():
 
     user = User.query.filter_by(email=data['email']).first()
 
-    # FIX: check user exists first before calling check_password_hash
     if not user:
         return jsonify({'error': 'Invalid credentials'}), 401
 
@@ -71,10 +106,20 @@ def get_categories(user_id):
     cats = Category.query.filter_by(user_id=user_id).all()
     return jsonify({'categories': [{'id': c.id, 'name': c.name} for c in cats]})
 
-# ✅ CREATE TASK
+# ✅ CREATE TASK  (now predicts risk immediately instead of hardcoding 'Medium')
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
     data = request.json
+
+    deadline = datetime.strptime(data['deadline'], '%Y-%m-%d')
+
+    # New task, nothing logged yet, so completion starts at 0
+    risk_result = predict_risk_from_task(
+        estimated_hours=data['estimated_hours'],
+        deadline=deadline,
+        difficulty_level=data['difficulty_level'],
+        completion_percentage=0.0,
+    )
 
     task = Task(
         user_id=data['user_id'],
@@ -83,21 +128,28 @@ def create_task():
         category_id=data['category_id'],
         difficulty_level=data['difficulty_level'],
         estimated_hours=data['estimated_hours'],
-        deadline=datetime.strptime(data['deadline'], '%Y-%m-%d'),
-        ml_risk_prediction='Medium',
+        deadline=deadline,
+        ml_risk_prediction=risk_result['risk_level'],
         status='Pending'
     )
 
     db.session.add(task)
     db.session.commit()
 
-    return jsonify({'task_id': task.id}), 201
+    return jsonify({
+        'task_id': task.id,
+        'risk_prediction': risk_result
+    }), 201
 
 
-# ✅ GET TASKS
+# ✅ GET TASKS  (risk is recalculated live, since time passing changes it)
 @app.route('/api/tasks/<int:user_id>', methods=['GET'])
 def get_tasks(user_id):
     tasks = Task.query.filter_by(user_id=user_id).all()
+
+    for t in tasks:
+        t.ml_risk_prediction = calculate_task_risk(t)
+    db.session.commit()
 
     return jsonify({'tasks': [
         {
@@ -112,13 +164,16 @@ def get_tasks(user_id):
     ]})
 
 
-# ✅ GET TASK
+# ✅ GET TASK  (also recalculated live)
 @app.route('/api/task/<int:task_id>', methods=['GET'])
 def get_task(task_id):
     task = Task.query.get(task_id)
 
     if not task:
         return jsonify({'error': 'Task not found'}), 404
+
+    task.ml_risk_prediction = calculate_task_risk(task)
+    db.session.commit()
 
     return jsonify({'task': {
         'id': task.id,
@@ -168,13 +223,11 @@ def update_task(task_id):
 def forgot_password():
     data = request.json
 
-    # Check if email exists
     user = User.query.filter_by(email=data['email']).first()
 
     if not user:
         return jsonify({'error': 'Email not found'}), 404
 
-    # Generate secure reset token
     otp = str(random.randint(100000, 999999))
 
     user.reset_otp = otp
@@ -182,8 +235,6 @@ def forgot_password():
 
     db.session.commit()
 
-    # Normally send email here
-    # For now return token in response (testing purpose)
     return jsonify({
         'message': 'OTP generated successfully',
         'otp': otp
@@ -197,27 +248,19 @@ def reset_password():
     otp = data.get('otp')
     new_password = data.get('new_password')
 
-    # Validate input
     if not otp or not new_password:
         return jsonify({'error': 'OTP and new password required'}), 400
 
-    # Find user by OTP
     user = User.query.filter_by(reset_otp=otp).first()
 
     if not user:
         return jsonify({'error': 'Invalid OTP'}), 400
 
-    # Check expiration
     if user.reset_otp_expiration < datetime.utcnow():
         return jsonify({'error': 'OTP expired'}), 400
 
-    # Hash new password
     hashed_password = generate_password_hash(new_password)
-
-    # Save hashed password
     user.password_hash = hashed_password
-
-    # Clear OTP after successful reset
     user.reset_otp = None
     user.reset_otp_expiration = None
 
