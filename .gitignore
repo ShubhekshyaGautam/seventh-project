@@ -14,4 +14,4 @@ instance/timemap.db
 timemap-backend/instance/timemap.db
 
 # Environment
-.env
+.envS
