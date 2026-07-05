@@ -88,6 +88,9 @@ export default function Dashboard() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
         :root {
+          --gold-50: #fdf3e0;
+--gold-100: #f8e4bd;
+--gold-800: #7a5220;
           --gold: #c48b32; --gold2: #e8a93e; --gold-light: #fef7ec;
           --ink: #0f172a; --ink2: #475569; --ink3: #94a3b8;
           --bg: #f8fafc; --card: #ffffff;
@@ -162,7 +165,7 @@ export default function Dashboard() {
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
         .p-greeting { font-family: 'Lora', serif; font-size: 34px; font-weight: 500; color: var(--ink); letter-spacing: -0.5px; margin-bottom: 8px; }
-        .p-greeting em { color: var(--gold); font-style: italic; font-weight: 400; }
+        .p-greeting em { color: var(--gold); font-style: normal; font-weight: 400; }
         .p-date { font-size: 14px; color: var(--ink3); font-weight: 400; letter-spacing: 0.2px; }
         
         .p-add-btn {
@@ -175,23 +178,42 @@ export default function Dashboard() {
         .p-add-btn:hover { transform: translateY(-2px); background: #1e293b; box-shadow: 0 8px 20px rgba(15,23,42,0.2); }
 
         /* ── KPI CARDS ── */
-        .p-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 48px; }
-        .p-kpi {
-          background: var(--card); border-radius: 24px; padding: 24px;
-          position: relative; overflow: hidden;
-          box-shadow: var(--shadow-md); transition: transform 0.3s, box-shadow 0.3s;
-          animation: fadeUp 0.6s ease-out backwards;
-        }
-        .p-kpi:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .p-kpi:nth-child(1) { animation-delay: 0.1s; }
-        .p-kpi:nth-child(2) { animation-delay: 0.2s; }
-        .p-kpi:nth-child(3) { animation-delay: 0.3s; }
-        .p-kpi:nth-child(4) { animation-delay: 0.4s; }
+ .p-kpis { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 20px; margin-bottom: 48px; }
 
-        .p-kpi-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
-        .p-kpi-val { font-family: 'Lora', serif; font-size: 42px; font-weight: 500; color: var(--ink); line-height: 1; margin-bottom: 4px; letter-spacing: -1px; }
-        .p-kpi-lbl { font-size: 14px; font-weight: 500; color: var(--ink2); }
-        .p-kpi-bg { position: absolute; right: -20px; bottom: -20px; width: 120px; height: 120px; border-radius: 50%; opacity: 0.4; filter: blur(30px); pointer-events: none; }
+.p-kpi {
+  border-radius: 22px; padding: 26px;
+  background: linear-gradient(160deg, var(--gold-50) 0%, var(--gold-100) 100%);
+  border: 1px solid rgba(196, 139, 50, 0.12);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s, box-shadow 0.3s;
+  animation: fadeUp 0.6s ease-out backwards;
+}
+.p-kpi:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.p-kpi:nth-child(1) { animation-delay: 0.1s; }
+.p-kpi:nth-child(2) { animation-delay: 0.2s; }
+.p-kpi:nth-child(3) { animation-delay: 0.3s; }
+.p-kpi:nth-child(4) { animation-delay: 0.4s; }
+
+.p-kpi.hero {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+  border: none;
+  box-shadow: 0 12px 28px rgba(196, 139, 50, 0.3);
+}
+
+.p-kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.p-kpi-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(196, 139, 50, 0.14); color: var(--gold-800); }
+.p-kpi.hero .p-kpi-icon { background: rgba(255,255,255,0.22); color: white; }
+
+.p-kpi-val { font-family: 'Lora', serif; font-size: 40px; font-weight: 500; line-height: 1; margin-bottom: 6px; letter-spacing: -1px; color: var(--gold-800); }
+.p-kpi.hero .p-kpi-val { color: white; }
+.p-kpi-val.stat-green { color: #15803d; }
+.p-kpi-val.stat-red   { color: #b91c1c; }
+
+.p-kpi-lbl { font-size: 14px; font-weight: 500; color: var(--ink2); margin-bottom: 8px; }
+.p-kpi.hero .p-kpi-lbl { color: rgba(255,255,255,0.92); }
+
+.p-kpi-sub { font-size: 12.5px; color: var(--gold-800); opacity: 0.75; }
+.p-kpi.hero .p-kpi-sub { color: rgba(255,255,255,0.78); opacity: 1; }
 
         /* ── GRID LAYOUT ── */
         .p-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; align-items: start; }
@@ -308,7 +330,7 @@ export default function Dashboard() {
             </button>
           </header>
 
-          <div className="p-kpis">
+          {/* <div className="p-kpis">
             <div className="p-kpi">
               <div className="p-kpi-bg" style={{ background: 'var(--ink)' }} />
               <div className="p-kpi-icon" style={{ background: 'var(--bg)', color: 'var(--ink)' }}><CheckSquare size={20} /></div>
@@ -333,7 +355,45 @@ export default function Dashboard() {
               <div className="p-kpi-val">{overdue}</div>
               <div className="p-kpi-lbl">Overdue</div>
             </div>
-          </div>
+          </div> */}
+
+          <div className="p-kpis">
+  <div className="p-kpi hero">
+    <div className="p-kpi-top">
+      <div className="p-kpi-icon"><CheckSquare size={18} /></div>
+    </div>
+    <div className="p-kpi-val">{total}</div>
+    <div className="p-kpi-lbl">Total tasks</div>
+    <div className="p-kpi-sub">{pct}% completed so far</div>
+  </div>
+
+  <div className="p-kpi">
+    <div className="p-kpi-top">
+      <div className="p-kpi-icon"><Clock size={18} /></div>
+    </div>
+    <div className="p-kpi-val">{pending}</div>
+    <div className="p-kpi-lbl">Pending</div>
+    <div className="p-kpi-sub">Due soon</div>
+  </div>
+
+  <div className="p-kpi">
+    <div className="p-kpi-top">
+      <div className="p-kpi-icon"><Check size={18} /></div>
+    </div>
+    <div className="p-kpi-val stat-green">{completed}</div>
+    <div className="p-kpi-lbl">Completed</div>
+    <div className="p-kpi-sub">Keep it going</div>
+  </div>
+
+  <div className="p-kpi">
+    <div className="p-kpi-top">
+      <div className="p-kpi-icon"><AlertTriangle size={18} /></div>
+    </div>
+    <div className="p-kpi-val stat-red">{overdue}</div>
+    <div className="p-kpi-lbl">Overdue</div>
+    <div className="p-kpi-sub">{overdue > 0 ? "Needs attention" : "All caught up"}</div>
+  </div>
+</div>
 
           <div className="p-grid">
             

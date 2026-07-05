@@ -113,8 +113,24 @@ export default function TaskDetail() {
         .d-main { margin-left:240px; flex:1; padding:40px 40px 60px; }
 
         .td-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-        .td-back-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--ink2); cursor: pointer; transition: all 0.2s; }
-        .td-back-btn:hover { background: #f4f4f5; color: var(--ink); }
+.td-back-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.td-back-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block !important;
+  color: #52525b !important;
+  stroke: #52525b !important;
+  fill: none !important;
+}
+.td-back-btn:hover svg { color: var(--ink); stroke: var(--ink); }
         .td-title { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; color: var(--ink); }
         .td-delete-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid #fee2e2; background: #fef2f2; color: #dc2626; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-left: auto; }
         .td-delete-btn:hover { background: #fee2e2; }
@@ -180,9 +196,16 @@ export default function TaskDetail() {
         {/* ── MAIN CONTENT ── */}
         <main className="d-main">
           <div className="td-header">
-            <button className="td-back-btn" onClick={() => navigate("/tasks")}>
-              <ArrowLeft size={20} strokeWidth={2} />
-            </button>
+  <div
+  className="td-back-btn"
+  role="button"
+  tabIndex={0}
+  onClick={() => navigate("/tasks")}
+  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") navigate("/tasks"); }}
+>
+  <ArrowLeft size={20} strokeWidth={2.5} color="#52525b" />
+</div>
+
             <h1 className="td-title">Task Details</h1>
             <button className="td-delete-btn" onClick={handleDelete}>
               Delete Task
