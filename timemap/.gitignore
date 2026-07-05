@@ -30,3 +30,6 @@ timemap-backend/instance/timemap.db
 *.pyc
 instance/
 venv/
+.venv/
+__pycache__/
+*.pyc
