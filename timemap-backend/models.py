@@ -30,7 +30,9 @@ class Task(db.Model):
     deadline = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(20), default='Not Started')
     ml_risk_prediction = db.Column(db.String(20))
+    last_notified_risk = db.Column(db.String(20), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
 
 class TimeLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
