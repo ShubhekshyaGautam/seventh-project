@@ -80,24 +80,26 @@ def predict_risk(estimated_study_hours: float,
 
 from datetime import datetime
 
-DIFFICULTY_LEVEL_MAP = {1: "Easy", 2: "Medium", 3: "Hard"}
+VALID_DIFFICULTIES = {"Easy", "Medium", "Hard"}
 
 
 def predict_risk_from_task(estimated_hours: float,
                             deadline: datetime,
-                            difficulty_level: int,
+                            difficulty_level,
                             completion_percentage: float) -> dict:
     """
     Wraps predict_risk() for use directly with Flask/SQLAlchemy Task data.
 
     - estimated_hours: task.estimated_hours (total hours the task needs)
     - deadline: task.deadline (a datetime object)
-    - difficulty_level: task.difficulty_level (int: 1=Easy, 2=Medium, 3=Hard)
+    - difficulty_level: "Easy" / "Medium" / "Hard" (matches what the frontend sends)
     - completion_percentage: calculated separately from TimeLog entries
     """
-    if difficulty_level not in DIFFICULTY_LEVEL_MAP:
+    difficulty = str(difficulty_level).strip().capitalize()
+
+    if difficulty not in VALID_DIFFICULTIES:
         raise ValueError(
-            f"difficulty_level must be one of {list(DIFFICULTY_LEVEL_MAP)}, got {difficulty_level}"
+            f"difficulty_level must be one of {VALID_DIFFICULTIES}, got '{difficulty_level}'"
         )
 
     hours_left = (deadline - datetime.utcnow()).total_seconds() / 3600
@@ -107,7 +109,7 @@ def predict_risk_from_task(estimated_hours: float,
         estimated_study_hours=estimated_hours,
         hours_left_until_deadline=hours_left,
         completion_percentage=completion_percentage,
-        difficulty=DIFFICULTY_LEVEL_MAP[difficulty_level],
+        difficulty=difficulty,
     )
 
 
