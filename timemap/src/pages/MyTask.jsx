@@ -224,6 +224,10 @@ export default function MyTask() {
         .d-dl.soon  { background:#fffbeb; color:#d97706; }
         .d-dl.today { background:#fdf3e3; color:var(--gold); }
         .d-dl.over  { background:#fef2f2; color:var(--red); }
+        .d-risk { font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; white-space:nowrap; }
+   .d-risk.low    { background:#f0fdf4; color:#16a34a; }
+   .d-risk.medium { background:#fffbeb; color:#d97706; }
+   .d-risk.high   { background:#fef2f2; color:#ef4444; }
 
         .mt-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
         .d-task-btn { padding:6px 12px; font-size:12px; font-weight:500; font-family:'Inter',sans-serif; border:none; border-radius:6px; cursor:pointer; transition:opacity 0.15s; white-space:nowrap; }
@@ -390,6 +394,9 @@ export default function MyTask() {
                       >
                         Delete
                       </button>
+                      {t.risk && (
+     <span className={`d-risk ${t.risk.toLowerCase()}`}>{t.risk} Risk</span>
+   )}
                       <span className={`d-dl ${dl.cls}`}>{dl.label}</span>
                     </div>
                   </div>
