@@ -23,10 +23,13 @@ with app.app_context():
     db.create_all()
 
 # ─────────────────────────────────────────────
-#  EMAIL CONFIG  —  fill in your Gmail details
+#  EMAIL CONFIG  
 # ─────────────────────────────────────────────
-EMAIL_ADDRESS  = "lunasharma000@gmail.com"     
-EMAIL_PASSWORD = "puuutlloxjdapvjr"      
+from dotenv import load_dotenv
+load_dotenv()
+
+EMAIL_ADDRESS  = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 # How to get App Password:
 #   Google Account → Security → 2-Step Verification → App Passwords → Generate
 
@@ -102,8 +105,7 @@ def build_reminder_email(username, tasks):
         <!-- Body -->
         <div style="padding:28px 36px;">
           <p style="color:#52525b;font-size:14px;margin:0 0 20px;">
-            Our AI has flagged the following tasks as <strong>high risk</strong> or <strong>due soon</strong>.
-            Don't let them slip — you've got this! 💪
+           
           </p>
 
           <!-- Task Table -->
@@ -249,8 +251,12 @@ def create_task():
 @app.route('/api/tasks/<int:user_id>', methods=['GET'])
 def get_tasks(user_id):
     user  = User.query.get(user_id)
+    
+    # Safety check — if user not found, return empty
+    if not user:
+        return jsonify({'tasks': []}), 200
+        
     tasks = Task.query.filter_by(user_id=user_id).all()
-
     for t in tasks:
         old_risk = t.ml_risk_prediction        # risk BEFORE recalculation
         new_risk = calculate_task_risk(t)      # risk NOW (ML recalculates)

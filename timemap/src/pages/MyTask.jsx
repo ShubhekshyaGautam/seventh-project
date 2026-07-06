@@ -9,11 +9,12 @@ import {
 
 export default function MyTask() {
   const navigate = useNavigate();
-  const username = localStorage.getItem("username") || "Student";
+  const username = localStorage.getItem("username") || "Student"; 
   const userId   = localStorage.getItem("user_id");
 
-  const [tasks,      setTasks]      = useState([]);
-  const [categories, setCategories] = useState([]);
+const [loading, setLoading] = useState(true);
+const [tasks, setTasks] = useState([]);       
+const [categories, setCategories] = useState([]);
   const [search,     setSearch]     = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [showModal,  setShowModal]  = useState(false);
@@ -32,23 +33,31 @@ export default function MyTask() {
     fetchCategories();
   }, []);
 
-  const fetchCategories = async () => {
-    try {
-      const r = await fetch(`http://localhost:5000/api/categories/${userId}`);
-      if (!r.ok) return;
-      const d = await r.json();
-      setCategories(d.categories || []);
-    } catch (e) { console.error(e); }
-  };
-
   const fetchTasks = async () => {
+    setLoading(true);  
     try {
       const r = await fetch(`http://localhost:5000/api/tasks/${userId}`);
       if (!r.ok) return;
       const d = await r.json();
       setTasks(d.tasks || []);
     } catch (e) { console.error(e); }
-  };
+    setLoading(false);  
+};
+
+ 
+
+const fetchCategories = async () => {
+  try {
+    const r = await fetch(`http://localhost:5000/api/categories/${userId}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    setCategories(d.categories || []);
+  } catch (e) { console.error(e); }
+};
+
+
+
+
 
   const deleteTask = async (id) => {
     try {
@@ -224,10 +233,6 @@ export default function MyTask() {
         .d-dl.soon  { background:#fffbeb; color:#d97706; }
         .d-dl.today { background:#fdf3e3; color:var(--gold); }
         .d-dl.over  { background:#fef2f2; color:var(--red); }
-        .d-risk { font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; white-space:nowrap; }
-   .d-risk.low    { background:#f0fdf4; color:#16a34a; }
-   .d-risk.medium { background:#fffbeb; color:#d97706; }
-   .d-risk.high   { background:#fef2f2; color:#ef4444; }
 
         .mt-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
         .d-task-btn { padding:6px 12px; font-size:12px; font-weight:500; font-family:'Inter',sans-serif; border:none; border-radius:6px; cursor:pointer; transition:opacity 0.15s; white-space:nowrap; }
@@ -346,20 +351,25 @@ export default function MyTask() {
           </div>
 
           {/* Task list */}
-          {filteredTasks.length === 0 ? (
-            <div className="mt-empty">
-              <div className="mt-empty-icon">🗂️</div>
-              <div className="mt-empty-text">
-                {search || filterStatus !== "All" ? "No tasks match your filter" : "No tasks yet"}
-              </div>
-              <div className="mt-empty-sub">
-                {search || filterStatus !== "All"
-                  ? "Try a different search or filter"
-                  : "Click '+ New Task' to add your first task"}
-              </div>
-            </div>
-          ) : (
-            <div className="mt-tasks">
+        {loading ? (
+  <div className="mt-empty">
+    <div className="mt-empty-icon">⏳</div>
+    <div className="mt-empty-text">Loading your tasks...</div>
+  </div>
+) : filteredTasks.length === 0 ? (
+  <div className="mt-empty">
+    <div className="mt-empty-icon">🗂️</div>
+    <div className="mt-empty-text">
+      {search || filterStatus !== "All" ? "No tasks match your filter" : "No tasks yet"}
+    </div>
+    <div className="mt-empty-sub">
+      {search || filterStatus !== "All"
+        ? "Try a different search or filter"
+        : "Click '+ New Task' to add your first task"}
+    </div>
+  </div>
+) : (
+  <div className="mt-tasks">
               {filteredTasks.map((t, i) => {
                 const dl  = daysLeft(t.deadline);
                 const col = subjectColor(t.subject_category);
@@ -394,9 +404,6 @@ export default function MyTask() {
                       >
                         Delete
                       </button>
-                      {t.risk && (
-     <span className={`d-risk ${t.risk.toLowerCase()}`}>{t.risk} Risk</span>
-   )}
                       <span className={`d-dl ${dl.cls}`}>{dl.label}</span>
                     </div>
                   </div>
