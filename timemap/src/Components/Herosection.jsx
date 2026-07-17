@@ -35,7 +35,7 @@ export default function HeroSection() {
       />
 
       {/* 2. THE OVERLAY NAVBAR */}
-
+      
 
       {/* 3. CENTER CONTENT */}
       <motion.div
