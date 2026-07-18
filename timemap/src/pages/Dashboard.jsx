@@ -274,7 +274,7 @@ export default function Dashboard() {
         .p-cal-dname { text-align: center; font-size: 11px; font-weight: 500; color: var(--ink3); margin-bottom: 8px; }
         .p-cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--ink); border-radius: 10px; cursor: default; position: relative; transition: all 0.2s; }
         .p-cal-day:hover { background: var(--bg); }
-        .p-cal-day.today { background: var(--ink); color: white; box-shadow: 0 4px 12px rgba(15,23,42,0.2); }
+        .p-cal-day.today { background: var(--ink); color: white; box-shadow: 0 4px 12px rgba(16, 23, 40, 0.2); }
         .p-cal-day.has-dl::after { content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
         .p-cal-day.today.has-dl::after { background: white; }
 
