@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_apscheduler import APScheduler
 from flask_cors import CORS
 from models import db, User, Task, TimeLog, Category
 from datetime import datetime
@@ -16,6 +17,11 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'timemap.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SCHEDULER_API_ENABLED'] = True
+app.config['SCHEDULER_JOB_DEFAULTS'] = {
+    'coalesce': False,
+    'max_instances': 1,
+}
 CORS(app)
 db.init_app(app)
 
@@ -174,6 +180,48 @@ def calculate_task_risk(task):
         return task.ml_risk_prediction or 'Medium'
 
 
+def run_global_risk_check():
+    """Recalculate risk for all active tasks and send notifications for new High-risk tasks."""
+    with app.app_context():
+        tasks = Task.query.filter(Task.status != 'Completed').all()
+        notifications = {}
+
+        for t in tasks:
+            old_risk = t.ml_risk_prediction
+            new_risk = calculate_task_risk(t)
+            t.ml_risk_prediction = new_risk
+
+            if new_risk == 'High' and t.last_notified_risk != 'High':
+                t.last_notified_risk = 'High'
+                notifications.setdefault(t.user_id, []).append(t)
+            elif new_risk != 'High' and t.last_notified_risk == 'High':
+                t.last_notified_risk = new_risk
+
+        db.session.commit()
+
+        for user_id, high_risk_tasks in notifications.items():
+            user = User.query.get(user_id)
+            if not user:
+                continue
+
+            flagged = []
+            for t in high_risk_tasks:
+                category = Category.query.get(t.category_id)
+                days_left = (t.deadline - datetime.utcnow()).days
+                flagged.append({
+                    'task_name': t.task_name,
+                    'deadline': t.deadline.strftime('%Y-%m-%d'),
+                    'risk': t.ml_risk_prediction,
+                    'days_left': days_left,
+                    'category': category.name if category else 'General',
+                })
+
+            subject = f"🚨 TimeMap Alert: {len(flagged)} task(s) now HIGH RISK!"
+            html_body = build_reminder_email(user.username, flagged)
+            sent = send_email(user.email, subject, html_body)
+            print(f"Scheduled risk check: email {'sent' if sent else 'failed'} for {user.email} - {len(flagged)} task(s)")
+
+
 # ─────────────────────────────────────────────
 #  EXISTING ROUTES  
 # ─────────────────────────────────────────────
@@ -297,9 +345,9 @@ def get_tasks(user_id):
         t.ml_risk_prediction = new_risk
 
         # ✅ If risk just became High AND we haven't already notified for High
-    if (new_risk == 'High' 
-        and t.last_notified_risk != 'High'
-        and t.status != 'Completed'):
+        if (new_risk == 'High'
+            and t.last_notified_risk != 'High'
+            and t.status != 'Completed'):
 
             # Send email immediately!
             category = Category.query.get(t.category_id)
@@ -319,8 +367,7 @@ def get_tasks(user_id):
             # Save so we don't email again for the same risk level
             t.last_notified_risk = 'High'
 
-        # Reset notification if risk drops back down
-    elif new_risk != 'High':
+        elif new_risk != 'High':
             t.last_notified_risk = new_risk
 
     db.session.commit()
@@ -545,6 +592,15 @@ def send_all_reminders():
 
     return jsonify({'results': results}), 200
 
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+
+@scheduler.task('cron', id='global_risk_check', hour=8, minute=0)
+def scheduled_global_risk_check():
+    run_global_risk_check()
+
+scheduler.start()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

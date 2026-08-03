@@ -248,6 +248,14 @@ const fetchCategories = async () => {
         .d-task-btn-toggle-undo { background:#fef9c3; color:#a16207; }
         .d-task-btn-delete { background:#fee2e2; color:#dc2626; }
 
+        /* New: primary action and overflow menu */
+        .d-task-btn-primary { background: #c48b32; color: white; padding:8px 12px; border-radius:8px; font-weight:600; }
+        .overflow-btn { background: transparent; border: 1px solid var(--border); width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; margin-left:8px; cursor:pointer; }
+        .overflow-menu { position:absolute; right:0; top:44px; background:var(--card); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,0.08); border-radius:10px; padding:8px; min-width:140px; z-index:50; }
+        .overflow-item { display:block; width:100%; text-align:left; padding:8px 10px; background:transparent; border:none; cursor:pointer; font-weight:600; color:var(--ink2); border-radius:6px; }
+        .overflow-item:hover { background:#f4f4f5; color:var(--ink); }
+        .overflow-item.danger { color:#dc2626; }
+
         .mt-empty { background:var(--card); border:1px dashed var(--border); border-radius:14px; padding:70px 24px; text-align:center; }
         .mt-empty-icon { font-size:44px; margin-bottom:14px; }
         .mt-empty-text { font-size:16px; font-weight:500; color:var(--ink2); }
@@ -392,33 +400,25 @@ const fetchCategories = async () => {
                         
                       </div>
                     </div>
-                    <div className="mt-actions" onClick={e => e.stopPropagation()}>
-                      <span className="d-pill" style={{
-                        background: t.status === "Completed" ? "#f0fdf4" : "#fdf3e3",
-                        color:      t.status === "Completed" ? "#16a34a" : "#c48b32",
-                      }}>
-                        {t.status}
-                      </span>
-                      <button
-                        className={`d-task-btn ${t.status==="Completed" ? "d-task-btn-toggle-undo" : "d-task-btn-toggle-done"}`}
-                        onClick={() => updateStatus(t.id, t.status==="Completed" ? "Pending" : "Completed")}
-                      >
-                        {t.status === "Completed" ? "Undo" : "Done"}
-                      </button>
-                      <button
-                        className="d-task-btn d-task-btn-secondary"
-                        onClick={() => selectTaskForTimer(t)}
-                      >
-                        {selectedTaskId == t.id ? "Timer Selected" : "Use Timer"}
-                      </button>
-                      <button
-                        className="d-task-btn d-task-btn-delete"
-                        onClick={() => deleteTask(t.id)}
-                      >
-                        Delete
-                      </button>
-                      <span className={`d-dl ${dl.cls}`}>{dl.label}</span>
-                    </div>
+                                    <div className="mt-actions" onClick={e => e.stopPropagation()}>
+                                      <span className="d-pill" style={{
+                                        background: t.status === "Completed" ? "#f0fdf4" : "#fdf3e3",
+                                        color:      t.status === "Completed" ? "#16a34a" : "#c48b32",
+                                        marginRight: '8px'
+                                      }}>
+                                        {t.status}
+                                      </span>
+
+                                      <button
+                                        className={`d-task-btn d-task-btn-primary`}
+                                        onClick={() => selectTaskForTimer(t)}
+                                        aria-label={`Use timer for ${t.task_name}`}
+                                      >
+                                        {selectedTaskId == t.id ? "Timer Selected" : "Use Timer"}
+                                      </button>
+
+                                      <span className={`d-dl ${dl.cls}`} style={{ marginLeft: '12px' }}>{dl.label}</span>
+                                    </div>
                   </div>
                 );
               })}

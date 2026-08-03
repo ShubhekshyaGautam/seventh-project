@@ -60,6 +60,21 @@ export default function TaskDetail() {
     } catch (err) { console.error(err); }
   };
 
+  const handleToggleStatus = async () => {
+    if (!task) return;
+    const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
+    try {
+      const res = await fetch(`http://localhost:5000/api/tasks/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        await fetchTask();
+      }
+    } catch (e) { console.error(e); }
+  };
+
   const navItems = [
     { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard",   path: "/dashboard" },
     { id: "tasks",     Icon: CheckSquare,     label: "My Task",     path: "/tasks"     },
@@ -132,8 +147,11 @@ export default function TaskDetail() {
 }
 .td-back-btn:hover svg { color: var(--ink); stroke: var(--ink); }
         .td-title { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; color: var(--ink); }
-        .td-delete-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid #fee2e2; background: #fef2f2; color: #dc2626; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-left: auto; }
+        .td-actions-right { margin-left: auto; display:flex; gap:12px; align-items:center; }
+        .td-delete-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid #fee2e2; background: #fef2f2; color: #dc2626; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .td-delete-btn:hover { background: #fee2e2; }
+        .td-done-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid #d1fae5; background: #dcfce7; color: #16a34a; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .td-done-btn:hover { background: #bbf7d0; }
         
         .td-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
         .td-row { display: flex; gap: 24px; flex-wrap: wrap; }
@@ -207,9 +225,14 @@ export default function TaskDetail() {
 </div>
 
             <h1 className="td-title">Task Details</h1>
-            <button className="td-delete-btn" onClick={handleDelete}>
-              Delete Task
-            </button>
+            <div className="td-actions-right">
+              <button className="td-done-btn" onClick={handleToggleStatus}>
+                {task && task.status === 'Completed' ? 'Undo' : 'Mark Done'}
+              </button>
+              <button className="td-delete-btn" onClick={handleDelete}>
+                Delete Task
+              </button>
+            </div>
           </div>
 
           {task && (() => {
