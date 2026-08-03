@@ -22,6 +22,7 @@ const [categories, setCategories] = useState([]);
   const [newCatName, setNewCatName] = useState("");
   const [savingCat,  setSavingCat]  = useState(false);
   const [saving,     setSaving]     = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(localStorage.getItem("task_id") || null);
   const [form, setForm] = useState({
     task_name: "", description: "", category_id: "",
     difficulty_level: "Medium", estimated_hours: "", deadline: "",
@@ -75,6 +76,12 @@ const fetchCategories = async () => {
       });
       if (res.ok) fetchTasks();
     } catch (err) { console.error(err); }
+  };
+
+  const selectTaskForTimer = (task) => {
+    localStorage.setItem("task_id", task.id);
+    localStorage.setItem("task_name", task.task_name);
+    setSelectedTaskId(task.id);
   };
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
@@ -397,6 +404,12 @@ const fetchCategories = async () => {
                         onClick={() => updateStatus(t.id, t.status==="Completed" ? "Pending" : "Completed")}
                       >
                         {t.status === "Completed" ? "Undo" : "Done"}
+                      </button>
+                      <button
+                        className="d-task-btn d-task-btn-secondary"
+                        onClick={() => selectTaskForTimer(t)}
+                      >
+                        {selectedTaskId == t.id ? "Timer Selected" : "Use Timer"}
                       </button>
                       <button
                         className="d-task-btn d-task-btn-delete"

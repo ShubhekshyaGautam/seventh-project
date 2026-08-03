@@ -33,11 +33,33 @@ export default function FocusTimer() {
       interval = setInterval(() => setRemainingSeconds(prev => prev - 1), 1000);
     } else if (remainingSeconds === 0 && isRunning) {
       playBeep();
-      if (isWorkSession) setCompletedCycles(c => c + 1);
+      if (isWorkSession) {
+        setCompletedCycles(c => c + 1);
+        logWorkSession();
+      }
       switchSession();
     }
     return () => clearInterval(interval);
   }, [isRunning, remainingSeconds, isWorkSession]);
+
+  const logWorkSession = async () => {
+    const taskId = localStorage.getItem("task_id");
+    if (!userId || !taskId) return;
+
+    try {
+      await fetch("http://localhost:5000/api/log-time", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task_id: parseInt(taskId, 10),
+          user_id: parseInt(userId, 10),
+          duration_minutes: workMinutes,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to log work session:", error);
+    }
+  };
 
   const audioContextRef = useRef(null);
   const getAudioContext = () => {
@@ -432,6 +454,11 @@ export default function FocusTimer() {
             <div className="ft-mode-badge">
               <span className={`ft-dot ${isWorkSession ? "" : "break"}`} />
               {isWorkSession ? "Focus Session" : "Break Time"}
+            </div>
+
+            {/* Selected task for timer */}
+            <div style={{ marginBottom: 20, fontSize: 13, color: '#52525b' }}>
+              <strong>Selected task:</strong> {localStorage.getItem("task_name") || "None"}
             </div>
 
             {/* Progress bar */}

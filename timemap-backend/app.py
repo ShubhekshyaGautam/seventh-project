@@ -222,6 +222,40 @@ def get_categories(user_id):
     return jsonify({'categories': [{'id': c.id, 'name': c.name} for c in cats]})
 
 
+@app.route('/api/log-time', methods=['POST'])
+def log_time():
+    data = request.get_json() or {}
+    task_id = data.get('task_id')
+    user_id = data.get('user_id')
+    duration_minutes = data.get('duration_minutes')
+
+    if task_id is None or user_id is None or duration_minutes is None:
+        return jsonify({'error': 'task_id, user_id, and duration_minutes are required'}), 400
+
+    try:
+        task_id = int(task_id)
+        user_id = int(user_id)
+        duration_minutes = int(duration_minutes)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'task_id, user_id, and duration_minutes must be integers'}), 400
+
+    task = Task.query.get(task_id)
+    if not task or task.user_id != user_id:
+        return jsonify({'error': 'Task not found or does not belong to this user'}), 404
+
+    log = TimeLog(
+        user_id=user_id,
+        task_id=task_id,
+        date=datetime.utcnow().date(),
+        duration_minutes=duration_minutes,
+        focus_level=0,
+    )
+    db.session.add(log)
+    db.session.commit()
+
+    return jsonify({'message': 'Time logged', 'log_id': log.id}), 201
+
+
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
     data = request.json
