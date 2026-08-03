@@ -600,7 +600,9 @@ scheduler.init_app(app)
 def scheduled_global_risk_check():
     run_global_risk_check()
 
-scheduler.start()
-
 if __name__ == '__main__':
+    # When Flask debug mode is enabled, Werkzeug auto-reloader imports this file twice.
+    # Only start the scheduler in the actual worker process to avoid duplicate jobs/emails.
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+        scheduler.start()
     app.run(debug=True, port=5000)
