@@ -37,7 +37,7 @@ FEATURES = [
 ]
 
 # Loaded once at import time, not on every request
-_model = joblib.load(os.path.join(_THIS_DIR, "risk_classifier.pkl"))
+_model = joblib.load(os.path.join(_THIS_DIR, "custom_rf_model.pkl"))
 _label_encoder = joblib.load(os.path.join(_THIS_DIR, "label_encoder.pkl"))
 
 

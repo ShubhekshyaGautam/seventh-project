@@ -201,7 +201,7 @@ export default function Analytics() {
         
         <main className="d-main">
           <div className="a-header">
-            <h1 className="a-title">TESTING123</h1>
+            <h1 className="a-title"></h1>
             <p className="a-subtitle">Overview of your study tasks and progress</p>
           </div>
 

@@ -147,7 +147,7 @@ def build_reminder_email(username, tasks):
 
 
 # ─────────────────────────────────────────────
-#  ML RISK HELPERS  (unchanged from original)
+#  ML RISK HELPERS  
 # ─────────────────────────────────────────────
 
 def calculate_completion_percentage(user_id, task_id, estimated_hours):
@@ -175,7 +175,7 @@ def calculate_task_risk(task):
 
 
 # ─────────────────────────────────────────────
-#  EXISTING ROUTES  (all unchanged)
+#  EXISTING ROUTES  
 # ─────────────────────────────────────────────
 
 @app.route('/')
